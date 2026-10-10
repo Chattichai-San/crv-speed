@@ -133,7 +133,7 @@ button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
   const $=id=>document.getElementById(id);
   const needle=$('needle'), speedEl=$('speed');
   let watchId=null, wake=null, timer=null;
-  let last=null, dist=0, maxV=0, movingMs=0, startT=null, shown=0, beeped=false;
+  let last=null, dist=0, maxV=0, movingMs=0, startT=null, shown=0, beeped=false, lastKmh=0, buf=[];
 
   function hav(a,b){const R=6371000,t=x=>x*Math.PI/180;
     const dLat=t(b.lat-a.lat),dLon=t(b.lon-a.lon);
@@ -154,7 +154,7 @@ button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
     if(over && !beeped){beep();beeped=true;} if(!over) beeped=false;
     $('max').textContent=Math.round(maxV);
     $('dist').textContent=(dist/1000).toFixed(2);
-    $('avg').textContent=movingMs>0?Math.round((dist/1000)/(movingMs/3600000)):0;
+    $('avg').textContent=movingMs>5000?Math.round((dist/1000)/(movingMs/3600000)):0;
   }
 
   let ac=null;
@@ -170,18 +170,32 @@ button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
     dot.className='dot '+(acc<=10?'good':acc<=30?'fair':'bad');
     $('acc').textContent=`±${Math.round(acc)} ม.`;
     $('msg').textContent=''; $('msg').classList.remove('err');
-    const cur={lat:c.latitude,lon:c.longitude,t:now};
-    let kmh;
-    if(c.speed!=null && !isNaN(c.speed)) kmh=c.speed*3.6;           // GPS Doppler speed (แม่นกว่า)
-    else if(last){const dt=(now-last.t)/1000; kmh=dt>0?hav(last,cur)/dt*3.6:0;}
-    else kmh=0;
-    if(kmh<2) kmh=0;                                                  // ตัดค่าลอยตอนจอด
-    if(last && acc<=30){
-      const d=hav(last,cur), dt=now-last.t;
-      if(kmh>0 && d<dt/1000*70) {dist+=d; movingMs+=dt;}             // กันกระโดด >250 km/h
+    const cur={lat:c.latitude,lon:c.longitude,t:now,acc:acc};
+    const good = acc<=15;                                             // ใช้เฉพาะสัญญาณ GPS ที่แม่นพอ
+    let kmh=0;
+    if(!good){
+      $('msg').textContent='สัญญาณ GPS ยังไม่แม่น (ในอาคาร?) — ความเร็วแสดง 0 จนกว่าจะจับดาวเทียมได้';
+      last=null; buf=[]; lastKmh=0; render(0); return;
     }
-    if(acc<=30) maxV=Math.max(maxV,kmh);
-    last=cur;
+    if(c.speed!=null && !isNaN(c.speed)){
+      kmh=c.speed*3.6;                                                // ความเร็วจากดาวเทียม (Doppler) — เชื่อถือได้
+    } else if(last){
+      const dt=(now-last.t)/1000, d=hav(last,cur);
+      // คำนวณจากระยะเฉพาะเมื่อเคลื่อนที่จริงเกินค่าคลาดเคลื่อนของทั้งสองจุด
+      if(dt>=1 && acc<=10 && last.acc<=10 && d > (acc+last.acc)) kmh=d/dt*3.6;
+    }
+    buf.push(kmh); if(buf.length>3) buf.shift();
+    kmh = buf.length<3 ? 0 : [...buf].sort((a,b)=>a-b)[1];   // ค่ากลาง 3 ครั้งล่าสุด ตัดค่ากระโดดครั้งเดียว
+    if(kmh<3) kmh=0;                                                  // ตัดค่าลอยตอนจอด
+    // กันค่ากระโดด: รถเปลี่ยนความเร็วได้ไม่เกิน ~20 km/h ต่อวินาที
+    if(last){const dt=Math.max(1,(now-last.t)/1000); const lim=20*dt; kmh=Math.min(lastKmh+lim, Math.max(lastKmh-lim, kmh));}
+    if(kmh>220) kmh=lastKmh;
+    if(last && kmh>0){
+      const d=hav(last,cur), dt=now-last.t;
+      if(d < (kmh/3.6)*(dt/1000)*1.5 + acc){dist+=d; movingMs+=dt;}  // สะสมระยะเฉพาะช่วงที่วิ่งจริง
+    }
+    if(kmh>0) maxV=Math.max(maxV,kmh);
+    lastKmh=kmh; last=cur;
     render(kmh);
   }
 
@@ -203,14 +217,14 @@ button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
   }
   function stop(){
     if(watchId!=null) navigator.geolocation.clearWatch(watchId);
-    watchId=null; clearInterval(timer); last=null;
+    watchId=null; clearInterval(timer); last=null; lastKmh=0; buf=[];
     try{wake&&wake.release();}catch(e){} wake=null;
     $('startBtn').textContent='เริ่มวัด'; $('startBtn').classList.remove('running');
     $('dot').className='dot'; $('acc').textContent='GPS ปิด';
     render(0);
   }
   $('startBtn').onclick=()=>watchId==null?start():stop();
-  $('resetBtn').onclick=()=>{dist=0;maxV=0;movingMs=0;shown=0;last=null;$('time').textContent='0:00:00';render(0);};
+  $('resetBtn').onclick=()=>{dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];$('time').textContent='0:00:00';render(0);};
   document.addEventListener('visibilitychange',async()=>{
     if(document.visibilityState==='visible' && watchId!=null){
       try{ if('wakeLock' in navigator) wake=await navigator.wakeLock.request('screen'); }catch(e){}
