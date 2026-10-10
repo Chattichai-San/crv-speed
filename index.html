@@ -98,6 +98,69 @@ body[data-c="yellow"]{--seg:#ffd60a;--segoff:rgba(255,214,10,.09);--glow:rgba(25
 .colors button[aria-pressed="true"]{border-color:var(--fg);outline:2px solid var(--bg);outline-offset:-5px}
 @media (orientation:landscape) and (max-height:600px){.colors{display:none!important}}
 body.rot .colors{display:none!important}
+/* ธีม LCD แบบเครื่องมือสำรวจ — ใช้ตอนตัวเลขเต็มจอ (แนวนอน) */
+.ltape,.lfoot{display:none}
+.colors button.lcdsw{background:radial-gradient(circle,#1c2416 0 28%,#b9c3a6 31%);box-shadow:0 0 0 1px #8e9a7a}
+@media (orientation:landscape) and (max-height:600px){ body[data-c="lcd"]{--u:1vh;--uw:1vw} }
+body.rot[data-c="lcd"]{--u:1vw;--uw:1vh}
+@media (orientation:landscape) and (max-height:600px){ body[data-c="lcd"]{--seg:#1c2416;--segoff:rgba(28,36,22,.075);--glow:transparent;--over:#b3261e;background:#22262a} }
+body.rot[data-c="lcd"]{--seg:#1c2416;--segoff:rgba(28,36,22,.075);--glow:transparent;--over:#b3261e;background:#22262a}
+body[data-c="lcd"] #dig.lcdon{display:grid!important;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;align-items:center;
+  width:calc(var(--uw)*95);height:calc(var(--u)*90);box-sizing:border-box;padding:calc(var(--u)*3) calc(var(--uw)*3.5);border-radius:14px;position:relative;
+  background:linear-gradient(175deg,#c3cdb0 0%,#b3bf9e 55%,#a6b391 100%);color:#1c2416;
+  box-shadow:inset 0 3px 10px rgba(0,0,0,.35),inset 0 0 0 2px #8e9a7a,0 0 0 8px #15181b,0 0 0 9px #33383d}
+body[data-c="lcd"] #dig.lcdon::after{content:"";position:absolute;inset:0;border-radius:14px;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.18),transparent 30%)}
+body.rot[data-c="lcd"] #dig.lcdon{position:fixed}
+body[data-c="lcd"] #dig.lcdon .ltape{display:block;grid-column:1/3;grid-row:1;position:relative;height:calc(var(--u)*9);border-bottom:2px solid rgba(28,36,22,.55);overflow:hidden}
+.lt{position:absolute;bottom:0;left:50%;display:flex;align-items:flex-end}
+.lt span{width:calc(var(--uw)*3.2);height:calc(var(--u)*8);position:relative;display:flex;align-items:flex-end;justify-content:center;font:700 calc(var(--u)*2.6) var(--display)}
+.lt span::after{content:"";position:absolute;bottom:0;left:50%;width:2px;height:calc(var(--u)*1.4);background:#1c2416}
+.lt span.m::after{height:calc(var(--u)*2.6)}
+.lt span em{font-style:normal;margin-bottom:calc(var(--u)*3.2)}
+.lcar{position:absolute;left:50%;top:calc(var(--u)*.6);transform:translateX(-50%);z-index:2;font:700 calc(var(--u)*3.4) var(--display);background:#1c2416;color:#bfc9ac;padding:calc(var(--u)*.2) calc(var(--uw)*1);border-radius:3px;box-shadow:0 0 0 calc(var(--u)*.8) #bfc9ac}
+body[data-c="lcd"] #dig.lcdon #dSpeed{grid-column:1;grid-row:2;justify-self:center}
+body[data-c="lcd"] #dig.lcdon .dspeed svg{height:calc(var(--u)*58);width:auto;max-width:calc(var(--uw)*76);filter:none}
+body[data-c="lcd"] #dig.lcdon .dunit{grid-column:2;grid-row:2;align-self:end;color:#1c2416;font:700 calc(var(--u)*5.4) var(--display);padding:0 0 calc(var(--u)*6)}
+body[data-c="lcd"] #dig.lcdon .lfoot{display:flex;grid-column:1/3;grid-row:3;justify-content:space-between;align-items:baseline;border-top:2px solid rgba(28,36,22,.55);padding-top:calc(var(--u)*1.4);font:600 calc(var(--u)*2.9) var(--display);color:#1c2416}
+.lfoot small{font:600 calc(var(--u)*2.2) var(--body);opacity:.7;margin-right:calc(var(--uw)*.6)}
+.lfoot b{font-weight:600}
+/* ธีม LCD — จอแนวตั้ง: ตัวเครื่องสีเข้ม + จอ LCD + ปุ่มแบบเครื่องมือสำรวจ */
+@media (orientation:portrait){
+ body[data-c="lcd"]:not(.rot){--seg:#1c2416;--segoff:rgba(28,36,22,.075);--glow:transparent;--over:#b3261e;--u:1vw;--uw:1vw;background:#1e2226}
+ body[data-c="lcd"]:not(.rot) header h1{color:#c3cdb0}
+ body[data-c="lcd"]:not(.rot) .mode{display:none}
+ body[data-c="lcd"]:not(.rot) main{position:relative;justify-content:flex-start;gap:18px;margin-block:8px 4px;padding:12px 16px 14px;box-sizing:border-box;border-radius:14px;color:#1c2416;
+   background:linear-gradient(175deg,#c6d0b3 0%,#b5c1a0 55%,#a7b492 100%);
+   box-shadow:inset 0 3px 10px rgba(0,0,0,.35),inset 0 0 0 2px #8e9a7a,0 0 0 6px #121518,0 0 0 7px #353a40}
+ body[data-c="lcd"]:not(.rot) main::after{content:"";position:absolute;inset:0;border-radius:14px;pointer-events:none;background:linear-gradient(125deg,rgba(255,255,255,.2),transparent 28%)}
+ body[data-c="lcd"]:not(.rot) #dial{display:none!important}
+ body[data-c="lcd"]:not(.rot) #dig.lcdon{display:grid!important;width:auto;height:auto;padding:0;background:none;box-shadow:none;border-radius:0;row-gap:6px}
+ body[data-c="lcd"]:not(.rot) #dig.lcdon::after{display:none}
+ body[data-c="lcd"]:not(.rot) #dig.lcdon .ltape{height:calc(var(--u)*10)}
+ body[data-c="lcd"]:not(.rot) .lt span{width:calc(var(--uw)*4.4);height:calc(var(--u)*9);font-size:calc(var(--u)*2.9)}
+ body[data-c="lcd"]:not(.rot) .lt span em{margin-bottom:calc(var(--u)*3.6)}
+ body[data-c="lcd"]:not(.rot) .lcar{font-size:calc(var(--u)*3.8);top:calc(var(--u)*.4)}
+ body[data-c="lcd"]:not(.rot) #dig.lcdon .dspeed svg{height:calc(var(--u)*30);max-width:72vw}
+ body[data-c="lcd"]:not(.rot) #dig.lcdon .dunit{font-size:calc(var(--u)*5.6);padding-bottom:calc(var(--u)*3)}
+ body[data-c="lcd"]:not(.rot) #dig.lcdon .lfoot{flex-wrap:wrap;row-gap:4px;font-size:calc(var(--u)*3.4)}
+ body[data-c="lcd"]:not(.rot) .lfoot span:nth-child(2){display:none}
+ body[data-c="lcd"]:not(.rot) .lfoot small{font-size:calc(var(--u)*3)}
+ body[data-c="lcd"]:not(.rot) .dstats{border-top:2px solid rgba(28,36,22,.55);padding-top:12px;row-gap:14px}
+ body[data-c="lcd"]:not(.rot) .dcell:nth-child(odd){border-right-color:rgba(28,36,22,.3)}
+ body[data-c="lcd"]:not(.rot) .dcell .k{color:#1c2416;opacity:.7}
+ body[data-c="lcd"]:not(.rot) .dval small{color:#1c2416}
+ body[data-c="lcd"]:not(.rot) .dval svg{height:2rem}
+ body[data-c="lcd"]:not(.rot) .colors,body[data-c="lcd"]:not(.rot) .limit,body[data-c="lcd"]:not(.rot) .msg{color:#1c2416}
+ body[data-c="lcd"]:not(.rot) .colors{border-top:2px solid rgba(28,36,22,.55);padding-top:14px;margin-top:auto}
+ body[data-c="lcd"]:not(.rot) .colors button{width:28px;height:28px;box-shadow:none;border-color:rgba(28,36,22,.35)}
+ body[data-c="lcd"]:not(.rot) .colors button[aria-pressed="true"]{border-color:#1c2416;outline-color:#b9c3a6}
+ body[data-c="lcd"]:not(.rot) .limit select{background:transparent;color:#1c2416;border:2px solid rgba(28,36,22,.55)}
+ body[data-c="lcd"]:not(.rot) .msg.err{color:#8a1d16}
+ body[data-c="lcd"]:not(.rot) .controls button{background:linear-gradient(#353b41,#2a2f34);color:#d5ddc6;border:1px solid #444b52;border-radius:12px;box-shadow:0 4px 0 #0e1012,inset 0 1px 0 rgba(255,255,255,.08)}
+ body[data-c="lcd"]:not(.rot) .controls button.primary{background:linear-gradient(#5d6e4b,#4a5a3b);border-color:#6f8159;color:#eef4e2}
+ body[data-c="lcd"]:not(.rot) .controls button.primary.running{background:linear-gradient(#353b41,#2a2f34);border-color:#6f8159;color:#c6d0b3}
+ body[data-c="lcd"]:not(.rot) .controls button:active{transform:translateY(3px);box-shadow:0 1px 0 #0e1012}
+}
 @media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
@@ -128,8 +191,10 @@ body.rot .colors{display:none!important}
   </div>
 
   <div class="dig" id="dig" hidden>
+    <div class="ltape" id="lTape" aria-hidden="true"><div class="lt" id="lTicks"></div><div class="lcar" id="lHead">---°</div></div>
     <div class="dspeed seg" id="dSpeed"></div>
     <div class="dunit">km/h</div>
+    <div class="lfoot" aria-hidden="true"><span><small>พิกัด</small><b id="lPos">—</b></span><span><small>ระยะทาง</small><b id="lDist">0.0 km</b></span><span><small>±</small><b id="lAcc">— m</b></span></div>
   </div>
 
   <div class="dstats">
@@ -145,6 +210,7 @@ body.rot .colors{display:none!important}
       <button type="button" data-c="green" style="--c:#3dff7a" aria-label="สีเขียว"></button>
       <button type="button" data-c="red" style="--c:#ff3b30" aria-label="สีแดง"></button>
       <button type="button" data-c="yellow" style="--c:#ffd60a" aria-label="สีเหลือง"></button>
+      <button type="button" data-c="lcd" class="lcdsw" aria-label="จอ LCD แบบเครื่องมือสำรวจ (แนวนอน)"></button>
     </div>
   </div>
 
@@ -246,6 +312,24 @@ body.rot .colors{display:none!important}
   const isBig=()=>document.body.classList.contains('big');
   const landMQ=matchMedia('(orientation:landscape) and (max-height:600px)'), isLand=()=>landMQ.matches;
   let rot=0;
+  // ---- ธีม LCD: แถบทิศ พิกัด ระยะทาง ความแม่นยำ ----
+  let head=null, fix=null, lastTape=null;
+  function brg(a,b){const t=x=>x*Math.PI/180,y=Math.sin(t(b.lon-a.lon))*Math.cos(t(b.lat)),
+    x=Math.cos(t(a.lat))*Math.sin(t(b.lat))-Math.sin(t(a.lat))*Math.cos(t(b.lat))*Math.cos(t(b.lon-a.lon));return (Math.atan2(y,x)*180/Math.PI+360)%360;}
+  function dms(v,p,n){const a=Math.abs(v),d=Math.floor(a),m=Math.floor((a-d)*60),s=Math.round(((a-d)*60-m)*60);
+    return `${d}°${String(m).padStart(2,'0')}′${String(Math.min(s,59)).padStart(2,'0')}″${v>=0?p:n}`;}
+  const NM={0:'N',45:'NE',90:'E',135:'SE',180:'S',225:'SW',270:'W',315:'NW'};
+  function updLcd(){
+    const on=document.body.dataset.c==='lcd'; $('dig').classList.toggle('lcdon',on); if(!on) return;
+    const H=head==null?0:Math.round(head)%360;
+    if(H!==lastTape){ lastTape=H; const base=Math.floor(H/15)*15; let t='';
+      for(let k=-15;k<=15;k++){const a=((base+k*15)%360+360)%360;t+=`<span class="${NM[a]?'m':''}"><em>${NM[a]||''}</em></span>`;}
+      $('lTicks').innerHTML=t; $('lTicks').style.transform=`translateX(calc(-50% - var(--uw)*3.2*${(H-base)/15}))`; }
+    $('lHead').textContent = head==null ? '---°' : String(H).padStart(3,'0')+'°';
+    $('lPos').textContent = fix ? `${dms(fix.lat,'N','S')}  ${dms(fix.lon,'E','W')}` : 'รอสัญญาณ GPS';
+    $('lDist').textContent = (dist/1000).toFixed(1)+' km';
+    $('lAcc').textContent = fix ? Math.round(fix.acc)+' m' : '— m';
+  }
 
   function hav(a,b){const R=6371000,t=x=>x*Math.PI/180;
     const dLat=t(b.lat-a.lat),dLon=t(b.lon-a.lon);
@@ -266,7 +350,7 @@ body.rot .colors{display:none!important}
     const spd=Math.round(shown), v=Math.max(0,Math.min(MAXV,shown));
     const lim=+$('limitSel').value, over=lim>0 && shown>lim;
     if(over && !beeped){beep();beeped=true;} if(!over) beeped=false;
-    if(isBig()||isLand()||rot){
+    if(isBig()||isLand()||rot||document.body.dataset.c==='lcd'){
       $('dSpeed').innerHTML=segSVG(String(spd).padStart(3,' ')); $('dSpeed').classList.toggle('over',over);
     }
     if(!isBig()){
@@ -275,7 +359,7 @@ body.rot .colors{display:none!important}
       $('prog').style.stroke=over?'var(--over)':'var(--seg)';
       $('gSpeed').innerHTML=segSVG(String(spd)); $('gSpeed').classList.toggle('over',over);
     }
-    renderStats();
+    renderStats(); if(typeof updLcd==='function') updLcd();
   }
 
   let ac=null;
@@ -314,6 +398,9 @@ body.rot .colors{display:none!important}
     }
     if(kmh>0){ maxV=Math.max(maxV,kmh); if(!tripStart) tripStart=now; lastMove=now; }
     if(tripStart && dist>0) ls.set('crv-cur',buildTrip());          // กันข้อมูลหายถ้าปิดแอปโดยไม่กดหยุด
+    if(c.heading!=null && !isNaN(c.heading) && kmh>=5) head=c.heading;
+    else if(last && kmh>=5 && hav(last,cur)>8) head=brg(last,cur);
+    fix=cur;
     lastKmh=kmh; last=cur;
     render(kmh);
   }
@@ -360,8 +447,8 @@ body.rot .colors{display:none!important}
   try{setBig(localStorage.getItem('crv-big')==='1')}catch(e){setBig(false)}
   $('modeBtn').onclick=()=>setBig(!isBig());
   $('dial').onclick=()=>setBig(true); $('dSpeed').onclick=()=>{if(isLand()||rot) nextColor(); else setBig(false);};
-  const COLORS=['cyan','green','red','yellow'];
-  function setColor(c){ if(!COLORS.includes(c)) c='cyan'; document.body.dataset.c=c;
+  const COLORS=['cyan','green','red','yellow','lcd'];
+  function setColor(c){ if(!COLORS.includes(c)) c='cyan'; document.body.dataset.c=c; setTimeout(updLcd,0);
     document.querySelectorAll('#colorSw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c));
     try{localStorage.setItem('crv-color',c)}catch(e){} }
   function nextColor(){ setColor(COLORS[(COLORS.indexOf(document.body.dataset.c||'cyan')+1)%COLORS.length]); }
