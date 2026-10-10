@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#14171a">
+<meta name="theme-color" content="#121518">
 <title>มาตรวัดความเร็ว CR-V</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
@@ -12,68 +12,71 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Sarabun:wght@400;600&display=swap">
 <style>
-/* Layout: one-screen instrument cluster — arc gauge on top, trip readouts below, controls pinned at bottom */
+/* Layout: one-screen instrument — dial (or giant digits) on top, 7-segment trip readouts below, controls pinned at bottom */
 :root{
-  --bg:#14171a; --panel:#1d2125; --line:#2c3238;
+  --bg:#121518; --panel:#1b1f23; --disc:#181c20; --line:#2a3036; --track:#262b30;
   --fg:#eef1f3; --muted:#8a949c;
-  --arc:#d9783a; --needle:#f2efe6; --warn:#ff4d3d; --ok:#5fc48a; --seg:#2ee8e0; --segoff:rgba(46,232,224,.09);
+  --seg:#2ee8e0; --segoff:rgba(46,232,224,.09);
+  --hot1:#e8762f; --hot2:#e5381f; --warn:#ff4d3d; --ok:#5fc48a; --fair:#e8a23a;
   --display:"Chakra Petch","Sarabun",system-ui,sans-serif;
   --body:"Sarabun",system-ui,sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);
   display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) 16px env(safe-area-inset-bottom,0px);
   -webkit-user-select:none;user-select:none}
 header{display:flex;justify-content:space-between;align-items:center;padding-block:12px 4px;gap:8px}
 header h1{font:700 1rem var(--display);letter-spacing:.06em;margin:0;text-transform:uppercase}
+.hdr-r{display:flex;align-items:center;gap:12px}
 .gps{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted)}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
-.dot.good{background:var(--ok)} .dot.fair{background:var(--arc)} .dot.bad{background:var(--warn)}
-main{flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;max-width:520px;width:100%;margin:0 auto}
-.gauge{position:relative;width:100%;max-width:100%}
-.gauge svg{width:100%;height:auto;display:block}
-.readout{position:absolute;left:0;right:0;top:46%;text-align:center}
-.speed{font:700 clamp(4.5rem,24vw,7.5rem)/1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.speed.over{color:var(--warn)}
-.unit{font:500 1rem var(--display);color:var(--muted);letter-spacing:.12em}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.stat{background:var(--panel);padding:10px 14px;min-width:0}
-.stat .k{font-size:.8rem;color:var(--muted)}
-.stat .v{font:700 1.5rem var(--display);font-variant-numeric:tabular-nums}
-.stat .v small{font:500 .8rem var(--display);color:var(--muted);margin-left:4px}
-.limit{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9rem;color:var(--muted)}
-.limit select{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:600 1rem var(--body)}
-.controls{display:grid;grid-template-columns:2fr 1fr;gap:10px;padding-block:12px 16px;max-width:520px;width:100%;margin:0 auto}
-button{font:700 1.1rem var(--display);border-radius:12px;border:1px solid var(--line);padding:16px;cursor:pointer;
-  background:var(--panel);color:var(--fg);letter-spacing:.04em}
-button.primary{background:var(--arc);border-color:var(--arc);color:#1a0f08}
-button.primary.running{background:transparent;color:var(--arc)}
-button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
-.msg{text-align:center;font-size:.9rem;color:var(--muted);min-height:1.3em}
-.msg.err{color:var(--warn)}
-@media (prefers-reduced-motion:reduce){#needle{transition:none!important}}
+.dot.good{background:var(--ok)} .dot.fair{background:var(--fair)} .dot.bad{background:var(--warn)}
+.mode{font:700 .85rem var(--display);padding:8px 12px;border-radius:10px;background:var(--panel);color:var(--fg);border:1px solid var(--line);letter-spacing:.04em;cursor:pointer}
+main{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;max-width:520px;width:100%;margin:0 auto}
 
-.hdr-r{display:flex;align-items:center;gap:12px}
-.mode{font:700 .85rem var(--display);padding:8px 12px;border-radius:10px;background:var(--panel);color:var(--fg);border:1px solid var(--line);letter-spacing:.04em}
-[hidden]{display:none!important}
-/* โหมดดิจิทัล: ตัวเลข 7 ส่วน */
-.dig{display:flex;flex-direction:column;gap:18px;width:100%}
-body.big .gauge,body.big .stats{display:none}
+/* หน้าปัด */
+.dial{position:relative;width:100%;max-width:440px;margin:0 auto}
+.dial svg{width:100%;height:auto;display:block}
+.dial .center{position:absolute;left:0;right:0;top:36%;display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.dial .center .seg{width:42%}
+.dial .center .seg svg{filter:drop-shadow(0 0 8px rgba(46,232,224,.3))}
+.dial .center .u{font:700 1.3rem var(--display);color:var(--seg);margin-top:4px}
+.dial .gps-note{position:absolute;left:0;right:0;bottom:6%;text-align:center;font-size:.8rem;color:var(--muted)}
+#needle,#prog{transition:transform .45s ease-out,stroke-dashoffset .45s ease-out}
+
+/* ตัวเลข 7 ส่วน */
 .seg .on{fill:var(--seg)} .seg .off{fill:var(--segoff)}
-.dspeed.over .on{fill:var(--warn)}
+.over .seg .on,.seg.over .on{fill:var(--warn)}
+
+/* โหมดดิจิทัล */
+.dig{display:flex;flex-direction:column;gap:6px;width:100%}
 .dspeed svg{width:100%;height:auto;display:block;filter:drop-shadow(0 0 10px rgba(46,232,224,.25))}
 .dspeed.over svg{filter:drop-shadow(0 0 10px rgba(255,77,61,.3))}
-.dunit{align-self:flex-end;font:700 1.9rem var(--display);color:var(--seg);margin-top:-6px}
-.dstats{display:grid;grid-template-columns:1fr 1fr;row-gap:22px}
+.dunit{align-self:flex-end;font:700 1.9rem var(--display);color:var(--seg)}
+
+/* สถิติ */
+.dstats{display:grid;grid-template-columns:1fr 1fr;row-gap:20px}
 .dcell{min-width:0;padding-inline:14px}
 .dcell:nth-child(odd){border-right:1px solid var(--line)}
 .dcell .k{font-size:.95rem;color:var(--muted);margin-bottom:6px}
 .dval{display:flex;align-items:flex-end;gap:6px}
-.dval svg{height:2.1rem;width:auto;max-width:100%}
+.dval svg{height:2rem;width:auto;max-width:100%}
 .dval small{font:500 .95rem var(--display);color:var(--seg)}
+
+.limit{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9rem;color:var(--muted)}
+.limit select{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:600 1rem var(--body)}
+.msg{text-align:center;font-size:.9rem;color:var(--muted);min-height:1.3em}
+.msg.err{color:var(--warn)}
+.controls{display:grid;grid-template-columns:2fr 1fr;gap:10px;padding-block:12px 16px;max-width:520px;width:100%;margin:0 auto}
+button{font:700 1.1rem var(--display);border-radius:14px;border:1px solid var(--line);padding:16px;cursor:pointer;background:var(--panel);color:var(--fg);letter-spacing:.04em}
+button.primary{background:var(--seg);border-color:var(--seg);color:#06201f}
+button.primary.running{background:transparent;color:var(--seg)}
+button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
 @media (orientation:landscape){body.big .dstats,body.big .limit{display:none}.dspeed svg{max-height:62vh;width:auto;margin:0 auto}}
+@media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
 <body>
@@ -83,35 +86,35 @@ body.big .gauge,body.big .stats{display:none}
 </header>
 
 <main>
-  <div class="gauge">
-    <svg viewBox="0 0 300 200" aria-hidden="true">
-      <g id="ticks"></g>
-      <line id="needle" x1="150" y1="160" x2="150" y2="42" stroke="var(--needle)" stroke-width="4" stroke-linecap="round"
-        style="transform-origin:150px 160px;transform:rotate(-120deg);transition:transform .45s ease-out"/>
-      <circle cx="150" cy="160" r="12" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>
+  <div class="dial" id="dial">
+    <svg viewBox="0 0 320 320" aria-hidden="true">
+      <defs>
+        <linearGradient id="hot" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#e8762f"/><stop offset="1" stop-color="#d7261a"/>
+        </linearGradient>
+        <filter id="glow" filterUnits="userSpaceOnUse" x="0" y="0" width="320" height="320"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <circle cx="160" cy="160" r="156" fill="#181c20"/>
+      <circle cx="160" cy="160" r="156" fill="none" stroke="#22272c" stroke-width="2"/>
+      <g id="scale"></g>
+      <path id="progTrack" fill="none" stroke="#262b30" stroke-width="14" stroke-linecap="butt"/>
+      <path id="prog" fill="none" stroke="#2ee8e0" stroke-width="14" stroke-linecap="butt" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" opacity=".85"/>
+      <line id="needle" x1="160" y1="58" x2="160" y2="20" stroke="#dffcfb" stroke-width="5" stroke-linecap="round" filter="url(#glow)"
+        style="transform-origin:160px 160px;transform:rotate(-135deg)"/>
     </svg>
-    <div class="readout">
-      <div class="speed" id="speed">0</div>
-      <div class="unit">km/h</div>
-    </div>
+    <div class="center"><div class="seg" id="gSpeed"></div><div class="u">km/h</div></div>
   </div>
 
   <div class="dig" id="dig" hidden>
     <div class="dspeed seg" id="dSpeed"></div>
     <div class="dunit">km/h</div>
-    <div class="dstats">
-      <div class="dcell"><div class="k">เวลาวิ่ง</div><div class="dval seg" id="dTime"></div></div>
-      <div class="dcell"><div class="k">ระยะทาง</div><div class="dval seg"><span id="dDist"></span><small>km</small></div></div>
-      <div class="dcell"><div class="k">ความเร็วเฉลี่ย</div><div class="dval seg"><span id="dAvg"></span><small>km/h</small></div></div>
-      <div class="dcell"><div class="k">ความเร็วสูงสุด</div><div class="dval seg"><span id="dMax"></span><small>km/h</small></div></div>
-    </div>
   </div>
 
-  <div class="stats">
-    <div class="stat"><div class="k">ระยะทาง</div><div class="v"><span id="dist">0.00</span><small>กม.</small></div></div>
-    <div class="stat"><div class="k">เวลาวิ่ง</div><div class="v" id="time">0:00:00</div></div>
-    <div class="stat"><div class="k">เฉลี่ย</div><div class="v"><span id="avg">0</span><small>km/h</small></div></div>
-    <div class="stat"><div class="k">สูงสุด</div><div class="v"><span id="max">0</span><small>km/h</small></div></div>
+  <div class="dstats">
+    <div class="dcell"><div class="k">เวลาวิ่ง</div><div class="dval seg" id="dTime"></div></div>
+    <div class="dcell"><div class="k">ระยะทาง</div><div class="dval seg"><span id="dDist"></span><small>km</small></div></div>
+    <div class="dcell"><div class="k">ความเร็วเฉลี่ย</div><div class="dval seg"><span id="dAvg"></span><small>km/h</small></div></div>
+    <div class="dcell"><div class="k">ความเร็วสูงสุด</div><div class="dval seg"><span id="dMax"></span><small>km/h</small></div></div>
   </div>
 
   <label class="limit" for="limitSel">เตือนเมื่อเกินความเร็ว
@@ -134,50 +137,34 @@ body.big .gauge,body.big .stats{display:none}
 
 <script>
 (function(){
-  // Gauge: 0–180 km/h over a 240° sweep, like the CR-V cluster
-  const MAXV=180, SWEEP=240, START=-120, CX=150, CY=160, R=118;
-  const ticks=document.getElementById('ticks');
-  const ns='http://www.w3.org/2000/svg';
-  function pt(deg,r){const a=(deg-90)*Math.PI/180;return [CX+r*Math.cos(a),CY+r*Math.sin(a)];}
-  // orange arc
-  const [x0,y0]=pt(START,R+8),[x1,y1]=pt(START+SWEEP,R+8);
-  const arc=document.createElementNS(ns,'path');
-  arc.setAttribute('d',`M${x0} ${y0} A${R+8} ${R+8} 0 1 1 ${x1} ${y1}`);
-  arc.setAttribute('fill','none');arc.setAttribute('stroke','var(--arc)');arc.setAttribute('stroke-width','4');
-  ticks.appendChild(arc);
-  for(let v=0;v<=MAXV;v+=10){
-    const d=START+SWEEP*v/MAXV, major=v%20===0;
-    const [a,b]=pt(d,R+6),[c,e]=pt(d,R-(major?10:3));
-    const l=document.createElementNS(ns,'line');
-    l.setAttribute('x1',a);l.setAttribute('y1',b);l.setAttribute('x2',c);l.setAttribute('y2',e);
-    l.setAttribute('stroke','var(--fg)');l.setAttribute('stroke-width',major?3:1.5);
-    ticks.appendChild(l);
-    if(major){
-      const [tx,ty]=pt(d,R-24);
-      const t=document.createElementNS(ns,'text');
-      t.setAttribute('x',tx);t.setAttribute('y',ty+4);t.setAttribute('text-anchor','middle');
-      t.setAttribute('fill','var(--muted)');t.setAttribute('font-size','11');t.setAttribute('font-family','Chakra Petch, sans-serif');
-      t.textContent=v;ticks.appendChild(t);
-    }
-  }
-
   const $=id=>document.getElementById(id);
-  const needle=$('needle'), speedEl=$('speed');
-  let watchId=null, wake=null, timer=null;
-  let last=null, dist=0, maxV=0, movingMs=0, startT=null, shown=0, beeped=false, lastKmh=0, buf=[];
+  // ---- หน้าปัด: 0–180 km/h กวาด 270° ----
+  const MAXV=180, SWEEP=270, A0=-135, CX=160, CY=160;
+  const ns='http://www.w3.org/2000/svg';
+  const pt=(deg,r)=>{const a=(deg-90)*Math.PI/180;return [CX+r*Math.cos(a),CY+r*Math.sin(a)];};
+  const ang=v=>A0+SWEEP*v/MAXV;
+  const arc=(r,v1,v2)=>{const [x1,y1]=pt(ang(v1),r),[x2,y2]=pt(ang(v2),r);const big=(ang(v2)-ang(v1))>180?1:0;return `M${x1} ${y1} A${r} ${r} 0 ${big} 1 ${x2} ${y2}`;};
+  const scale=$('scale');
+  const add=(tag,attrs)=>{const e=document.createElementNS(ns,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);scale.appendChild(e);return e;};
+  // วงนอก: เทา → ส้ม → แดง ช่วงความเร็วสูง
+  add('path',{d:arc(134,0,100),fill:'none',stroke:'#2e343a','stroke-width':5});
+  add('path',{d:arc(134,100,180),fill:'none',stroke:'url(#hot)','stroke-width':5});
+  for(let v=0;v<=MAXV;v+=10){
+    const major=v%20===0, hot=v>100;
+    const [a,b]=pt(ang(v),major?127:130),[c,e]=pt(ang(v),142);
+    add('line',{x1:a,y1:b,x2:c,y2:e,stroke:hot?(v>=150?'#e5381f':'#e8762f'):(major?'#2ee8e0':'#4a535b'),'stroke-width':major?3:1.5,'stroke-linecap':'round'});
+    if(major){const [tx,ty]=pt(ang(v),112);
+      const t=add('text',{x:tx,y:ty+5,'text-anchor':'middle',fill:'#c9d1d6','font-size':14,'font-weight':700,'font-family':'Chakra Petch, sans-serif'});t.textContent=v;}
+  }
+  $('progTrack').setAttribute('d',arc(92,0,180));
+  $('prog').setAttribute('d',arc(92,0,180));
+  // เข็มสั้นที่ขอบ (ยาวจาก r=100 ถึง r=138)
+  $('needle').setAttribute('y1',CY-100); $('needle').setAttribute('y2',CY-140);
 
-  function hav(a,b){const R=6371000,t=x=>x*Math.PI/180;
-    const dLat=t(b.lat-a.lat),dLon=t(b.lon-a.lon);
-    const h=Math.sin(dLat/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dLon/2)**2;
-    return 2*R*Math.asin(Math.sqrt(h));}
-
-  function fmtTime(ms){const s=Math.floor(ms/1000);
-    return `${Math.floor(s/3600)}:${String(Math.floor(s/60)%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
-
-  // ---- ตัวเลข 7 ส่วน (วาดเองด้วย SVG) ----
+  // ---- ตัวเลข 7 ส่วน (วาดด้วย SVG) ----
   const SEGS={'0':'abcdef','1':'bc','2':'abged','3':'abgcd','4':'fgbc','5':'afgcd','6':'afgedc','7':'abc','8':'abcdefg','9':'abcdfg',' ':''};
-  function hz(x1,x2,y,t){return `${x1},${y} ${x1+t/2},${y-t/2} ${x2-t/2},${y-t/2} ${x2},${y} ${x2-t/2},${y+t/2} ${x1+t/2},${y+t/2}`}
-  function vt(x,y1,y2,t){return `${x},${y1} ${x+t/2},${y1+t/2} ${x+t/2},${y2-t/2} ${x},${y2} ${x-t/2},${y2-t/2} ${x-t/2},${y1+t/2}`}
+  const hz=(x1,x2,y,t)=>`${x1},${y} ${x1+t/2},${y-t/2} ${x2-t/2},${y-t/2} ${x2},${y} ${x2-t/2},${y+t/2} ${x1+t/2},${y+t/2}`;
+  const vt=(x,y1,y2,t)=>`${x},${y1} ${x+t/2},${y1+t/2} ${x+t/2},${y2-t/2} ${x},${y2} ${x-t/2},${y2-t/2} ${x-t/2},${y1+t/2}`;
   function digit(ch,ox){const W=60,H=100,t=12,g=2.5,L=t/2,R=W-t/2,T=t/2,M=H/2,B=H-t/2;
     const P={a:hz(L+g,R-g,T,t),b:vt(R,T+g,M-g,t),c:vt(R,M+g,B-g,t),d:hz(L+g,R-g,B,t),e:vt(L,M+g,B-g,t),f:vt(L,T+g,M-g,t),g:hz(L+g,R-g,M,t)};
     const on=SEGS[ch]??'';let s='';for(const k in P)s+=`<polygon class="${on.includes(k)?'on':'off'}" points="${P[k]}" transform="translate(${ox} 0)"/>`;return s;}
@@ -186,8 +173,19 @@ body.big .gauge,body.big .stats{display:none}
       else if(ch===':'){s+=`<rect class="on" x="${x}" y="26" width="11" height="11"/><rect class="on" x="${x}" y="63" width="11" height="11"/>`;x+=21;}
       else{s+=digit(ch,x);x+=74;}}
     return `<svg viewBox="-16 -2 ${x+14} 104" aria-hidden="true"><g transform="skewX(-7)">${s}</g></svg>`;}
-  function renderDigital(spd,over){
-    $('dSpeed').innerHTML=segSVG(String(spd).padStart(3,' ')); $('dSpeed').classList.toggle('over',over);
+
+  let watchId=null, wake=null, timer=null;
+  let last=null, dist=0, maxV=0, movingMs=0, shown=0, beeped=false, lastKmh=0, buf=[];
+  const isBig=()=>document.body.classList.contains('big');
+
+  function hav(a,b){const R=6371000,t=x=>x*Math.PI/180;
+    const dLat=t(b.lat-a.lat),dLon=t(b.lon-a.lon);
+    const h=Math.sin(dLat/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dLon/2)**2;
+    return 2*R*Math.asin(Math.sqrt(h));}
+  function fmtTime(ms){const s=Math.floor(ms/1000);
+    return `${Math.floor(s/3600)}:${String(Math.floor(s/60)%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
+
+  function renderStats(){
     $('dTime').innerHTML=segSVG(fmtTime(movingMs));
     $('dDist').innerHTML=segSVG((dist/1000).toFixed(2));
     $('dAvg').innerHTML=segSVG(String(movingMs>5000?Math.round((dist/1000)/(movingMs/3600000)):0));
@@ -195,18 +193,19 @@ body.big .gauge,body.big .stats{display:none}
   }
 
   function render(kmh){
-    shown = kmh===0 ? 0 : shown*0.4 + kmh*0.6;          // light smoothing
-    const v=Math.max(0,Math.min(MAXV,shown));
-    needle.style.transform=`rotate(${START+SWEEP*v/MAXV}deg)`;
-    speedEl.textContent=Math.round(shown);
-    const lim=+$('limitSel').value;
-    const over=lim>0 && shown>lim;
-    speedEl.classList.toggle('over',over);
+    shown = kmh===0 ? 0 : shown*0.4 + kmh*0.6;
+    const spd=Math.round(shown), v=Math.max(0,Math.min(MAXV,shown));
+    const lim=+$('limitSel').value, over=lim>0 && shown>lim;
     if(over && !beeped){beep();beeped=true;} if(!over) beeped=false;
-    $('max').textContent=Math.round(maxV);
-    $('dist').textContent=(dist/1000).toFixed(2);
-    $('avg').textContent=movingMs>5000?Math.round((dist/1000)/(movingMs/3600000)):0;
-    if(document.body.classList.contains('big')) renderDigital(Math.round(shown),over);
+    if(isBig()){
+      $('dSpeed').innerHTML=segSVG(String(spd).padStart(3,' ')); $('dSpeed').classList.toggle('over',over);
+    } else {
+      $('needle').style.transform=`rotate(${ang(v)}deg)`;
+      $('prog').setAttribute('stroke-dashoffset',100-100*v/MAXV);
+      $('prog').setAttribute('stroke',over?'#ff4d3d':'#2ee8e0');
+      $('gSpeed').innerHTML=segSVG(String(spd)); $('gSpeed').classList.toggle('over',over);
+    }
+    renderStats();
   }
 
   let ac=null;
@@ -218,33 +217,29 @@ body.big .gauge,body.big .stats{display:none}
 
   function onPos(p){
     const c=p.coords, now=p.timestamp, acc=c.accuracy;
-    const dot=$('dot');
-    dot.className='dot '+(acc<=10?'good':acc<=30?'fair':'bad');
+    $('dot').className='dot '+(acc<=10?'good':acc<=30?'fair':'bad');
     $('acc').textContent=`±${Math.round(acc)} ม.`;
     $('msg').textContent=''; $('msg').classList.remove('err');
     const cur={lat:c.latitude,lon:c.longitude,t:now,acc:acc};
-    const good = acc<=15;                                             // ใช้เฉพาะสัญญาณ GPS ที่แม่นพอ
     let kmh=0;
-    if(!good){
+    if(acc>15){                                                       // ใช้เฉพาะสัญญาณ GPS ที่แม่นพอ
       $('msg').textContent='สัญญาณ GPS ยังไม่แม่น (ในอาคาร?) — ความเร็วแสดง 0 จนกว่าจะจับดาวเทียมได้';
       last=null; buf=[]; lastKmh=0; render(0); return;
     }
     if(c.speed!=null && !isNaN(c.speed)){
-      kmh=c.speed*3.6;                                                // ความเร็วจากดาวเทียม (Doppler) — เชื่อถือได้
+      kmh=c.speed*3.6;                                                // ความเร็วจากดาวเทียม (Doppler)
     } else if(last){
       const dt=(now-last.t)/1000, d=hav(last,cur);
-      // คำนวณจากระยะเฉพาะเมื่อเคลื่อนที่จริงเกินค่าคลาดเคลื่อนของทั้งสองจุด
       if(dt>=1 && acc<=10 && last.acc<=10 && d > (acc+last.acc)) kmh=d/dt*3.6;
     }
     buf.push(kmh); if(buf.length>3) buf.shift();
-    kmh = buf.length<3 ? 0 : [...buf].sort((a,b)=>a-b)[1];   // ค่ากลาง 3 ครั้งล่าสุด ตัดค่ากระโดดครั้งเดียว
+    kmh = buf.length<3 ? 0 : [...buf].sort((a,b)=>a-b)[1];           // ค่ากลาง 3 ครั้งล่าสุด
     if(kmh<5) kmh=0;                                                  // ตัดค่าลอยตอนจอด
-    // กันค่ากระโดด: รถเปลี่ยนความเร็วได้ไม่เกิน ~20 km/h ต่อวินาที
-    if(last){const dt=Math.max(1,(now-last.t)/1000); const lim=20*dt; kmh=Math.min(lastKmh+lim, Math.max(lastKmh-lim, kmh));}
+    if(last){const dt=Math.max(1,(now-last.t)/1000); const l=20*dt; kmh=Math.min(lastKmh+l, Math.max(lastKmh-l, kmh));}
     if(kmh>220) kmh=lastKmh;
     if(last && kmh>0){
       const d=hav(last,cur), dt=now-last.t;
-      if(d < (kmh/3.6)*(dt/1000)*1.5 + acc){dist+=d; movingMs+=dt;}  // สะสมระยะเฉพาะช่วงที่วิ่งจริง
+      if(d < (kmh/3.6)*(dt/1000)*1.5 + acc){dist+=d; movingMs+=dt;}
     }
     if(kmh>0) maxV=Math.max(maxV,kmh);
     lastKmh=kmh; last=cur;
@@ -263,8 +258,7 @@ body.big .gauge,body.big .stats{display:none}
     watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:0,timeout:15000});
     $('msg').textContent='กำลังหาสัญญาณ GPS…';
     $('startBtn').textContent='หยุด'; $('startBtn').classList.add('running');
-    startT=Date.now();
-    timer=setInterval(()=>{$('time').textContent=fmtTime(movingMs); if(document.body.classList.contains('big')) $('dTime').innerHTML=segSVG(fmtTime(movingMs));},1000);
+    timer=setInterval(()=>{$('dTime').innerHTML=segSVG(fmtTime(movingMs));},1000);
     try{ if('wakeLock' in navigator) wake=await navigator.wakeLock.request('screen'); }catch(e){}
   }
   function stop(){
@@ -276,20 +270,22 @@ body.big .gauge,body.big .stats{display:none}
     render(0);
   }
   $('startBtn').onclick=()=>watchId==null?start():stop();
-  $('resetBtn').onclick=()=>{dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];$('time').textContent='0:00:00';render(0);};
+  $('resetBtn').onclick=()=>{dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];render(0);};
   document.addEventListener('visibilitychange',async()=>{
     if(document.visibilityState==='visible' && watchId!=null){
       try{ if('wakeLock' in navigator) wake=await navigator.wakeLock.request('screen'); }catch(e){}
     }});
   try{const s=localStorage.getItem('crv-limit'); if(s) $('limitSel').value=s;}catch(e){}
   $('limitSel').onchange=e=>{try{localStorage.setItem('crv-limit',e.target.value);}catch(_){}};
-  // โหมดตัวเลขใหญ่: กดปุ่มหรือแตะที่ตัวเลข เพื่อสลับ — แอปจำค่าไว้
-  function setBig(on){document.body.classList.toggle('big',on);$('dig').hidden=!on;$('modeBtn').textContent=on?'เข็ม':'ดิจิทัล';render(lastKmh);try{localStorage.setItem('crv-big',on?'1':'0')}catch(e){}}
+
+  // สลับหน้าปัดเข็ม / ตัวเลขดิจิทัล — แอปจำค่าไว้
+  function setBig(on){document.body.classList.toggle('big',on);$('dig').hidden=!on;$('dial').hidden=on;
+    $('modeBtn').textContent=on?'เข็ม':'ดิจิทัล';render(lastKmh);try{localStorage.setItem('crv-big',on?'1':'0')}catch(e){}}
   try{setBig(localStorage.getItem('crv-big')==='1')}catch(e){setBig(false)}
-  $('modeBtn').onclick=()=>setBig(!document.body.classList.contains('big'));
-  speedEl.onclick=()=>setBig(true); $('dSpeed').onclick=()=>setBig(false);
-  render(0);
-  // เปิด GPS อัตโนมัติเมื่อเปิดแอป (ครั้งแรก Chrome จะถามสิทธิ์ครั้งเดียว)
+  $('modeBtn').onclick=()=>setBig(!isBig());
+  $('dial').onclick=()=>setBig(true); $('dSpeed').onclick=()=>setBig(false);
+
+  // เปิด GPS อัตโนมัติเมื่อเปิดแอป
   start();
   if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 })();
