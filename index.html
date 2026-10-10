@@ -284,6 +284,7 @@ body.mapOn #mp{background:#05080a}
 #mpFollow{position:absolute;right:10px;top:110px;z-index:500;padding:8px 12px}
 .mpbar{position:absolute;left:58px;right:10px;top:10px;z-index:500;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .mpbar>*{pointer-events:auto}
+.mpchips button span{white-space:nowrap}
 .mprow1{display:flex;gap:8px;align-items:stretch}
 .mprow1 #mpSearchBtn{flex:1;min-width:0}
 .mprow1 #mpTraffic{flex:none;width:44px;height:42px;border-radius:22px;padding:0;font-size:1.2rem}
@@ -338,7 +339,12 @@ body.mapOn #mp{background:#05080a}
 .nvt span{font:700 1.05rem var(--body);color:#e8fdff}
 .nvt small{font:400 .85rem var(--body);color:#8fd7dc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #nvVoice{font-size:1.3rem;background:#11181d;border:1px solid #264048;border-radius:10px;padding:6px 8px}
-#mp.nav .mpbar{top:86px} #mp.nav #mpFollow{top:184px} #mp.nav .maplibregl-ctrl-top-left{top:76px}
+#mp.nav .mpbar{top:calc(var(--nvh,82px) + 12px);left:auto;align-items:flex-end;gap:10px}
+#mp.nav .mpchips{flex-direction:column;overflow:visible;padding:0;margin:0;gap:10px}
+#mp.nav .mprow1 #mpTraffic,#mp.nav #mpHead,#mp.nav #mpSnap{width:48px;height:48px;padding:0;border-radius:50%!important;font-size:1.35rem;display:grid;place-items:center}
+#mp.nav #mpHead span,#mp.nav #mpSnap span{display:none}
+#mp.nav #mpFollow{top:auto;right:auto;left:50%;transform:translateX(-50%);bottom:calc(max(10px,env(safe-area-inset-bottom)) + 118px)}
+#mp.nav .maplibregl-ctrl-top-left{top:calc(var(--nvh,82px) + 2px)}
 .nvfoot{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 58px);z-index:520;display:flex;align-items:center;justify-content:space-between;gap:8px;
   background:#05080a;color:#3ff6ff;border:1px solid rgba(63,246,255,.35);border-radius:12px;padding:8px 10px;font:700 .95rem var(--display)}
 #nvStop{font:700 .85rem var(--display);background:#2a0f0f;color:#ff8a80;border:1px solid #7a2a2a;border-radius:8px;padding:6px 8px;white-space:nowrap}
@@ -384,7 +390,7 @@ body.mapOn #mp.plan{grid-template-rows:1fr!important;grid-template-columns:1fr!i
 .carar.nohead .arw{display:none} .carar:not(.nohead) .dot{display:none}
 @media (display-mode: fullscreen){ .mpbtns{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 44px)}
   .nvfoot,.nvpick,.nvprev{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 102px)} .mpmsg{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 102px)}
-  #mp.nav .mpmsg{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 152px)} #mp .maplibregl-ctrl-bottom-right,#mp .maplibregl-ctrl-bottom-left{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 98px)}
+  #mp.nav .mpmsg{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 152px)} #mp.nav #mpFollow{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 162px)} #mp .maplibregl-ctrl-bottom-right,#mp .maplibregl-ctrl-bottom-left{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 98px)}
   .controls{padding-bottom:56px} }
 /* จุดเลือกหน้ากาก (สำหรับหน้ากากที่ไม่มีแถวสี: จอสัมผัส และแผนที่) */
 #skinDots{display:none;position:fixed;left:50%;transform:translateX(-50%);z-index:60;gap:7px;padding:6px 9px;border-radius:20px;background:rgba(10,14,18,.55);backdrop-filter:blur(4px)}
@@ -481,7 +487,7 @@ body.rot #skinDots{display:none!important}
     <div class="mpbtns"><button type="button" id="mpGo">เริ่ม</button><button type="button" id="mpRst">รีเซ็ต</button><button type="button" id="mpSkin">◀ หน้าปัด</button></div>
     <div class="mpmsg" id="mpMsg"></div>
     <div class="mpbar"><div class="mprow1"><button type="button" id="mpSearchBtn">🔍 ไปที่ไหน</button><button type="button" id="mpTraffic" aria-label="แสดงสภาพจราจร">🚦</button></div>
-      <div class="mpchips"><button type="button" id="mpHistBtn">🕘 ประวัติ</button><button type="button" id="mpHead">🧭 ตามรถ</button><button type="button" id="mpSnap">🛣 เกาะถนน</button></div></div>
+      <div class="mpchips"><button type="button" id="mpHistBtn">🕘 ประวัติ</button><button type="button" id="mpHead">🧭<span> ตามรถ</span></button><button type="button" id="mpSnap">🛣<span> เกาะถนน</span></button></div></div>
     <div class="nvpanel" id="hsPanel" hidden>
       <div class="fvhead"><b>🕘 ประวัติการเดินทาง</b><button type="button" id="hsClose" aria-label="ปิด">✕</button></div>
       <ul id="hsList"></ul>
@@ -856,7 +862,7 @@ body.rot #skinDots{display:none!important}
     const src=map.getSource&&map.getSource('trk'); if(src) src.setData(lineGeo());
   }
   function setHeadUp(on){ headUp=on; try{localStorage.setItem('crv-headup',on?'1':'0')}catch(e){}
-    $('mpHead').classList.toggle('on',on); $('mpHead').textContent= on ? '🧭 ตามรถ' : '🧭 เหนือขึ้น'; follow=true; $('mpFollow').hidden=true; updMap(); }
+    $('mpHead').classList.toggle('on',on); $('mpHead').innerHTML= on ? '🧭<span> ตามรถ</span>' : '🧭<span> เหนือขึ้น</span>'; follow=true; $('mpFollow').hidden=true; updMap(); }
   function updMp(){
     if(document.body.dataset.c!=='map') return;
     const w=isLand()||!!rot; $('mp').classList.toggle('wide',w); if(w!==mpWide){ mpWide=w; if(map) setTimeout(()=>map.resize(),60); }
@@ -904,7 +910,7 @@ body.rot #skinDots{display:none!important}
     }catch(e){} finally{ snapBusy=false; }
   }
   function setSnap(on){ snapOn=on; try{localStorage.setItem('crv-snap',on?'1':'0')}catch(e){}
-    $('mpSnap').classList.toggle('on',on); $('mpSnap').textContent= on ? '🛣 เกาะถนน' : '🛣 ไม่เกาะถนน'; updMap(); }
+    $('mpSnap').classList.toggle('on',on); $('mpSnap').innerHTML= on ? '🛣<span> เกาะถนน</span>' : '🛣<span> ไม่เกาะถนน</span>'; updMap(); }
   $('mpSnap').onclick=()=>setSnap(!snapOn);
   setSnap(snapOn); setHeadUp(headUp);
   // ---- ค้นหาสถานที่ + นำทาง (Nominatim ค้นหา, OSRM หาเส้นทาง — ข้อมูล OpenStreetMap ฟรี) ----
@@ -991,6 +997,7 @@ body.rot #skinDots{display:none!important}
     s.setData({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:nav?nav.coords:[]}});
     const sj=map.getSource('routejam'); if(sj) sj.setData({type:'FeatureCollection',features:(nav&&nav.traffic)?nav.traffic.jams.map(j=>({type:'Feature',properties:{m:j.m},geometry:{type:'LineString',coordinates:nav.coords.slice(j.a,j.b+1)}})):[]});
     if(nav){ if(!destMk) destMk=new maplibregl.Marker({color:'#e53935'}); destMk.setLngLat([nav.dest.lon,nav.dest.lat]).addTo(map); } else if(destMk && !pvDest) destMk.remove(); }
+  if(window.ResizeObserver) new ResizeObserver(()=>{ const h=$('nvBan').offsetHeight; if(h) $('mp').style.setProperty('--nvh',h+'px'); }).observe($('nvBan'));
   function showNav(on){ $('mp').classList.toggle('nav',on); $('nvBan').hidden=!on; $('nvFoot').hidden=!on; if(!on){ nav=null; setRouteLayer(); } }
   function updNav(){
     if(!nav||!nav.active) return;
