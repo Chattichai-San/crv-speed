@@ -144,7 +144,7 @@ button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
     return `${Math.floor(s/3600)}:${String(Math.floor(s/60)%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
 
   function render(kmh){
-    shown = shown*0.4 + kmh*0.6;          // light smoothing
+    shown = kmh===0 ? 0 : shown*0.4 + kmh*0.6;          // light smoothing
     const v=Math.max(0,Math.min(MAXV,shown));
     needle.style.transform=`rotate(${START+SWEEP*v/MAXV}deg)`;
     speedEl.textContent=Math.round(shown);
@@ -186,7 +186,7 @@ button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
     }
     buf.push(kmh); if(buf.length>3) buf.shift();
     kmh = buf.length<3 ? 0 : [...buf].sort((a,b)=>a-b)[1];   // ค่ากลาง 3 ครั้งล่าสุด ตัดค่ากระโดดครั้งเดียว
-    if(kmh<3) kmh=0;                                                  // ตัดค่าลอยตอนจอด
+    if(kmh<5) kmh=0;                                                  // ตัดค่าลอยตอนจอด
     // กันค่ากระโดด: รถเปลี่ยนความเร็วได้ไม่เกิน ~20 km/h ต่อวินาที
     if(last){const dt=Math.max(1,(now-last.t)/1000); const lim=20*dt; kmh=Math.min(lastKmh+lim, Math.max(lastKmh-lim, kmh));}
     if(kmh>220) kmh=lastKmh;
