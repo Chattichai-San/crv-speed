@@ -83,6 +83,11 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
   .dspeed svg{height:88vh;height:88dvh;width:auto;max-width:86vw}
   .dunit{align-self:flex-end;font-size:6vh;padding-bottom:4vh}
 }
+/* แอปที่ติดตั้งค้างแนวตั้ง: ใช้เซนเซอร์แรงโน้มถ่วงหมุนตัวเลขเอง */
+body.rot header,body.rot .dial,body.rot .dstats,body.rot .limit,body.rot .msg,body.rot .controls{display:none!important}
+body.rot #dig,body.rot #dig[hidden]{display:flex!important;position:fixed;top:50%;left:50%;width:100vh;height:100vw;flex-direction:row;align-items:flex-end;justify-content:center;gap:2vh;transform:translate(-50%,-50%) rotate(var(--r,90deg))}
+body.rot .dspeed svg{height:80vw;width:auto;max-width:84vh}
+body.rot .dunit{font-size:6vw;padding-bottom:6vw}
 @media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
@@ -210,6 +215,7 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
   function resetTrip(){dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur');}
   const isBig=()=>document.body.classList.contains('big');
   const landMQ=matchMedia('(orientation:landscape) and (max-height:600px)'), isLand=()=>landMQ.matches;
+  let rot=0;
 
   function hav(a,b){const R=6371000,t=x=>x*Math.PI/180;
     const dLat=t(b.lat-a.lat),dLon=t(b.lon-a.lon);
@@ -230,7 +236,7 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
     const spd=Math.round(shown), v=Math.max(0,Math.min(MAXV,shown));
     const lim=+$('limitSel').value, over=lim>0 && shown>lim;
     if(over && !beeped){beep();beeped=true;} if(!over) beeped=false;
-    if(isBig()||isLand()){
+    if(isBig()||isLand()||rot){
       $('dSpeed').innerHTML=segSVG(String(spd).padStart(3,' ')); $('dSpeed').classList.toggle('over',over);
     }
     if(!isBig()){
@@ -323,6 +329,18 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
   $('modeBtn').onclick=()=>setBig(!isBig());
   $('dial').onclick=()=>setBig(true); $('dSpeed').onclick=()=>{if(!isLand())setBig(false);};
   try{landMQ.addEventListener('change',()=>render(lastKmh));}catch(e){landMQ.addListener(()=>render(lastKmh));}
+  // ปลดล็อกการหมุนจอของแอปที่ติดตั้งไว้ (เดิมล็อกแนวตั้ง)
+  const unlockRot=()=>{try{screen.orientation.lock('any').catch(()=>{});}catch(e){}};
+  unlockRot(); document.addEventListener('click',unlockRot,{once:true});
+  // สำรอง: ถ้าจอยังไม่หมุน ใช้เซนเซอร์ดูว่าวางโทรศัพท์แนวนอนแล้วหมุนตัวเลขให้เอง
+  function setRot(r){ if(r===rot) return; rot=r;
+    document.body.classList.toggle('rot',!!r); document.body.style.setProperty('--r',r+'deg'); render(lastKmh); }
+  addEventListener('devicemotion',e=>{const g=e.accelerationIncludingGravity; if(!g||g.x==null) return;
+    if(isLand()){ setRot(0); return; }                     // จอหมุนจริงแล้ว ไม่ต้องหมุนเอง
+    const ax=g.x, ay=g.y;
+    if(Math.abs(ax)>6.5 && Math.abs(ax)>Math.abs(ay)*1.8) setRot(ax>0?90:-90);
+    else if(Math.abs(ay)>6.5 && Math.abs(ay)>Math.abs(ax)*1.8) setRot(0);  // วางราบ = คงสถานะเดิม
+  });
 
   // ทริปที่ค้างจากครั้งก่อน (ปิดแอปโดยไม่กดหยุด) → ส่งบันทึก
   const prev=ls.get('crv-cur',null); if(prev){ queueTrip(prev); ls.del('crv-cur'); }
