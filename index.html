@@ -16,7 +16,7 @@
 :root{
   --bg:#14171a; --panel:#1d2125; --line:#2c3238;
   --fg:#eef1f3; --muted:#8a949c;
-  --arc:#d9783a; --needle:#f2efe6; --warn:#ff4d3d; --ok:#5fc48a;
+  --arc:#d9783a; --needle:#f2efe6; --warn:#ff4d3d; --ok:#5fc48a; --seg:#2ee8e0; --segoff:rgba(46,232,224,.09);
   --display:"Chakra Petch","Sarabun",system-ui,sans-serif;
   --body:"Sarabun",system-ui,sans-serif;
   color-scheme:dark;
@@ -57,19 +57,29 @@ button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
 
 .hdr-r{display:flex;align-items:center;gap:12px}
 .mode{font:700 .85rem var(--display);padding:8px 12px;border-radius:10px;background:var(--panel);color:var(--fg);border:1px solid var(--line);letter-spacing:.04em}
-body.big .gauge svg{display:none}
-body.big .readout{position:static}
-body.big .speed{font-size:min(64vw,52vh);line-height:.85;letter-spacing:-.04em}
-body.big .unit{font-size:1.5rem;margin-top:8px}
-body.big .stats .stat .v{font-size:1.2rem}
-body.big main{justify-content:space-evenly}
-@media (orientation:landscape){body.big .speed{font-size:min(40vw,62vh)}body.big .stats,body.big .limit{display:none}}
+[hidden]{display:none!important}
+/* โหมดดิจิทัล: ตัวเลข 7 ส่วน */
+.dig{display:flex;flex-direction:column;gap:18px;width:100%}
+body.big .gauge,body.big .stats{display:none}
+.seg .on{fill:var(--seg)} .seg .off{fill:var(--segoff)}
+.dspeed.over .on{fill:var(--warn)}
+.dspeed svg{width:100%;height:auto;display:block;filter:drop-shadow(0 0 10px rgba(46,232,224,.25))}
+.dspeed.over svg{filter:drop-shadow(0 0 10px rgba(255,77,61,.3))}
+.dunit{align-self:flex-end;font:700 1.9rem var(--display);color:var(--seg);margin-top:-6px}
+.dstats{display:grid;grid-template-columns:1fr 1fr;row-gap:22px}
+.dcell{min-width:0;padding-inline:14px}
+.dcell:nth-child(odd){border-right:1px solid var(--line)}
+.dcell .k{font-size:.95rem;color:var(--muted);margin-bottom:6px}
+.dval{display:flex;align-items:flex-end;gap:6px}
+.dval svg{height:2.1rem;width:auto;max-width:100%}
+.dval small{font:500 .95rem var(--display);color:var(--seg)}
+@media (orientation:landscape){body.big .dstats,body.big .limit{display:none}.dspeed svg{max-height:62vh;width:auto;margin:0 auto}}
 </style>
 </head>
 <body>
 <header>
   <h1>Honda CR-V · GPS</h1>
-  <div class="hdr-r"><div class="gps"><span class="dot" id="dot"></span><span id="acc">GPS ปิด</span></div><button class="mode" id="modeBtn" type="button">ตัวใหญ่</button></div>
+  <div class="hdr-r"><div class="gps"><span class="dot" id="dot"></span><span id="acc">GPS ปิด</span></div><button class="mode" id="modeBtn" type="button">ดิจิทัล</button></div>
 </header>
 
 <main>
@@ -83,6 +93,17 @@ body.big main{justify-content:space-evenly}
     <div class="readout">
       <div class="speed" id="speed">0</div>
       <div class="unit">km/h</div>
+    </div>
+  </div>
+
+  <div class="dig" id="dig" hidden>
+    <div class="dspeed seg" id="dSpeed"></div>
+    <div class="dunit">km/h</div>
+    <div class="dstats">
+      <div class="dcell"><div class="k">เวลาวิ่ง</div><div class="dval seg" id="dTime"></div></div>
+      <div class="dcell"><div class="k">ระยะทาง</div><div class="dval seg"><span id="dDist"></span><small>km</small></div></div>
+      <div class="dcell"><div class="k">ความเร็วเฉลี่ย</div><div class="dval seg"><span id="dAvg"></span><small>km/h</small></div></div>
+      <div class="dcell"><div class="k">ความเร็วสูงสุด</div><div class="dval seg"><span id="dMax"></span><small>km/h</small></div></div>
     </div>
   </div>
 
@@ -153,6 +174,26 @@ body.big main{justify-content:space-evenly}
   function fmtTime(ms){const s=Math.floor(ms/1000);
     return `${Math.floor(s/3600)}:${String(Math.floor(s/60)%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
 
+  // ---- ตัวเลข 7 ส่วน (วาดเองด้วย SVG) ----
+  const SEGS={'0':'abcdef','1':'bc','2':'abged','3':'abgcd','4':'fgbc','5':'afgcd','6':'afgedc','7':'abc','8':'abcdefg','9':'abcdfg',' ':''};
+  function hz(x1,x2,y,t){return `${x1},${y} ${x1+t/2},${y-t/2} ${x2-t/2},${y-t/2} ${x2},${y} ${x2-t/2},${y+t/2} ${x1+t/2},${y+t/2}`}
+  function vt(x,y1,y2,t){return `${x},${y1} ${x+t/2},${y1+t/2} ${x+t/2},${y2-t/2} ${x},${y2} ${x-t/2},${y2-t/2} ${x-t/2},${y1+t/2}`}
+  function digit(ch,ox){const W=60,H=100,t=12,g=2.5,L=t/2,R=W-t/2,T=t/2,M=H/2,B=H-t/2;
+    const P={a:hz(L+g,R-g,T,t),b:vt(R,T+g,M-g,t),c:vt(R,M+g,B-g,t),d:hz(L+g,R-g,B,t),e:vt(L,M+g,B-g,t),f:vt(L,T+g,M-g,t),g:hz(L+g,R-g,M,t)};
+    const on=SEGS[ch]??'';let s='';for(const k in P)s+=`<polygon class="${on.includes(k)?'on':'off'}" points="${P[k]}" transform="translate(${ox} 0)"/>`;return s;}
+  function segSVG(str){let x=0,s='';for(const ch of str){
+      if(ch==='.'){s+=`<rect class="on" x="${x}" y="88" width="12" height="12"/>`;x+=20;}
+      else if(ch===':'){s+=`<rect class="on" x="${x}" y="26" width="11" height="11"/><rect class="on" x="${x}" y="63" width="11" height="11"/>`;x+=21;}
+      else{s+=digit(ch,x);x+=74;}}
+    return `<svg viewBox="-16 -2 ${x+14} 104" aria-hidden="true"><g transform="skewX(-7)">${s}</g></svg>`;}
+  function renderDigital(spd,over){
+    $('dSpeed').innerHTML=segSVG(String(spd).padStart(3,' ')); $('dSpeed').classList.toggle('over',over);
+    $('dTime').innerHTML=segSVG(fmtTime(movingMs));
+    $('dDist').innerHTML=segSVG((dist/1000).toFixed(2));
+    $('dAvg').innerHTML=segSVG(String(movingMs>5000?Math.round((dist/1000)/(movingMs/3600000)):0));
+    $('dMax').innerHTML=segSVG(String(Math.round(maxV)));
+  }
+
   function render(kmh){
     shown = kmh===0 ? 0 : shown*0.4 + kmh*0.6;          // light smoothing
     const v=Math.max(0,Math.min(MAXV,shown));
@@ -165,6 +206,7 @@ body.big main{justify-content:space-evenly}
     $('max').textContent=Math.round(maxV);
     $('dist').textContent=(dist/1000).toFixed(2);
     $('avg').textContent=movingMs>5000?Math.round((dist/1000)/(movingMs/3600000)):0;
+    if(document.body.classList.contains('big')) renderDigital(Math.round(shown),over);
   }
 
   let ac=null;
@@ -222,7 +264,7 @@ body.big main{justify-content:space-evenly}
     $('msg').textContent='กำลังหาสัญญาณ GPS…';
     $('startBtn').textContent='หยุด'; $('startBtn').classList.add('running');
     startT=Date.now();
-    timer=setInterval(()=>{$('time').textContent=fmtTime(movingMs);},1000);
+    timer=setInterval(()=>{$('time').textContent=fmtTime(movingMs); if(document.body.classList.contains('big')) $('dTime').innerHTML=segSVG(fmtTime(movingMs));},1000);
     try{ if('wakeLock' in navigator) wake=await navigator.wakeLock.request('screen'); }catch(e){}
   }
   function stop(){
@@ -242,10 +284,10 @@ body.big main{justify-content:space-evenly}
   try{const s=localStorage.getItem('crv-limit'); if(s) $('limitSel').value=s;}catch(e){}
   $('limitSel').onchange=e=>{try{localStorage.setItem('crv-limit',e.target.value);}catch(_){}};
   // โหมดตัวเลขใหญ่: กดปุ่มหรือแตะที่ตัวเลข เพื่อสลับ — แอปจำค่าไว้
-  function setBig(on){document.body.classList.toggle('big',on);$('modeBtn').textContent=on?'มีเข็ม':'ตัวใหญ่';try{localStorage.setItem('crv-big',on?'1':'0')}catch(e){}}
+  function setBig(on){document.body.classList.toggle('big',on);$('dig').hidden=!on;$('modeBtn').textContent=on?'เข็ม':'ดิจิทัล';render(lastKmh);try{localStorage.setItem('crv-big',on?'1':'0')}catch(e){}}
   try{setBig(localStorage.getItem('crv-big')==='1')}catch(e){setBig(false)}
   $('modeBtn').onclick=()=>setBig(!document.body.classList.contains('big'));
-  speedEl.onclick=()=>setBig(!document.body.classList.contains('big'));
+  speedEl.onclick=()=>setBig(true); $('dSpeed').onclick=()=>setBig(false);
   render(0);
   // เปิด GPS อัตโนมัติเมื่อเปิดแอป (ครั้งแรก Chrome จะถามสิทธิ์ครั้งเดียว)
   start();
