@@ -281,17 +281,25 @@ body.mapOn #mp{background:#05080a}
 .mpbtns button,#mpFollow{font:700 1rem var(--display);padding:12px 6px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.94);color:#14181c;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 .mpbtns #mpGo{background:#1e6bff;color:#fff;border-color:#1e6bff}
 .mpbtns #mpGo.running{background:#fff;color:#c62828;border-color:#c62828}
-#mpFollow{position:absolute;right:10px;top:56px;z-index:500;padding:8px 12px}
-.mptop{position:absolute;right:10px;top:10px;z-index:500;display:flex;gap:6px}
+#mpFollow{position:absolute;right:10px;top:110px;z-index:500;padding:8px 12px}
+.mpbar{position:absolute;left:58px;right:10px;top:10px;z-index:500;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.mpbar>*{pointer-events:auto}
+.mprow1{display:flex;gap:8px;align-items:stretch}
+.mprow1 #mpSearchBtn{flex:1;min-width:0}
+.mprow1 #mpTraffic{flex:none;width:44px;height:42px;border-radius:22px;padding:0;font-size:1.2rem}
+#mp.nav .mprow1{justify-content:flex-end}
+.mpchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 2px 6px;margin:-2px -2px -6px}
+.mpchips::-webkit-scrollbar{display:none}
+.mpchips button{flex:none;white-space:nowrap;border-radius:18px!important}
 #mpTraffic{font:1.1rem/1 var(--body);padding:8px 10px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(0,0,0,.2)}
 #mpTraffic.on{background:#1e6bff;border-color:#1e6bff}
 .tjam{color:#ff6d5a;font-weight:700} .tok{color:#4be38a;font-weight:700}
 #mpSnap,#mpHead{font:700 .85rem var(--display);padding:8px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.94);color:#5c6670;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 #mpSnap.on,#mpHead.on{background:#1e6bff;color:#fff;border-color:#1e6bff}
 #mp .maplibregl-ctrl-bottom-right,#mp .maplibregl-ctrl-bottom-left{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 54px)}
-#mpSearchBtn{position:absolute;left:58px;top:10px;z-index:500;font:700 .95rem var(--display);padding:9px 14px;border-radius:22px;border:1px solid rgba(0,0,0,.15);background:#fff;color:#14181c;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#mpSearchBtn{display:block;text-align:left;font:700 1rem var(--display);padding:9px 14px;border-radius:22px;border:1px solid rgba(0,0,0,.15);background:#fff;color:#14181c;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 #mp.nav #mpSearchBtn,#mp.nav #mpHistBtn{display:none}
-#mpHistBtn{position:absolute;left:58px;top:58px;z-index:500;font:700 .9rem var(--display);padding:8px 12px;border-radius:22px;border:1px solid rgba(0,0,0,.15);background:#fff;color:#14181c;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#mpHistBtn{font:700 .85rem var(--display);padding:8px 12px;border-radius:22px;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.94);color:#14181c;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 #hsClose{background:#eef1f4;color:#14181c;border:0;border-radius:8px;padding:6px 10px}
 #hsList{list-style:none;margin:6px 0 0;padding:0}
 #hsList li{padding:10px 6px;border-bottom:1px solid #e7ebef;cursor:pointer;display:flex;flex-direction:column;gap:2px}
@@ -330,14 +338,14 @@ body.mapOn #mp{background:#05080a}
 .nvt span{font:700 1.05rem var(--body);color:#e8fdff}
 .nvt small{font:400 .85rem var(--body);color:#8fd7dc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #nvVoice{font-size:1.3rem;background:#11181d;border:1px solid #264048;border-radius:10px;padding:6px 8px}
-#mp.nav .mptop{top:86px} #mp.nav #mpFollow{top:132px} #mp.nav .maplibregl-ctrl-top-left{top:76px}
+#mp.nav .mpbar{top:86px} #mp.nav #mpFollow{top:184px} #mp.nav .maplibregl-ctrl-top-left{top:76px}
 .nvfoot{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 58px);z-index:520;display:flex;align-items:center;justify-content:space-between;gap:8px;
   background:#05080a;color:#3ff6ff;border:1px solid rgba(63,246,255,.35);border-radius:12px;padding:8px 10px;font:700 .95rem var(--display)}
 #nvStop{font:700 .85rem var(--display);background:#2a0f0f;color:#ff8a80;border:1px solid #7a2a2a;border-radius:8px;padding:6px 8px;white-space:nowrap}
 #mp.nav .mpmsg{display:none}
 /* หน้าวางแผนเส้นทาง (เต็มจอแผนที่) */
 body.mapOn #mp.plan{grid-template-rows:1fr!important;grid-template-columns:1fr!important}
-#mp.plan .mpspd,#mp.plan .mpbtns,#mp.plan .mptop,#mp.plan #mpSearchBtn,#mp.plan #mpHistBtn,#mp.plan #mpFollow,#mp.plan .mpmsg,#mp.plan #skinDots,#mp.plan .maplibregl-ctrl-top-left{display:none!important}
+#mp.plan .mpspd,#mp.plan .mpbtns,#mp.plan .mpbar,#mp.plan #mpSearchBtn,#mp.plan #mpHistBtn,#mp.plan #mpFollow,#mp.plan .mpmsg,#mp.plan #skinDots,#mp.plan .maplibregl-ctrl-top-left{display:none!important}
 .plhead{position:absolute;inset:0 0 auto 0;z-index:620;background:#202326;padding:max(10px,env(safe-area-inset-top)) 12px 12px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .plrow{display:flex;align-items:center;gap:8px}
 .plback{flex:none;width:38px;height:38px;border:0;background:none;color:#e9edf0;font:400 2.2rem/1 var(--body);padding:0 0 6px}
@@ -470,11 +478,10 @@ body.rot #skinDots{display:none!important}
   </div>
   <div class="mpmap"><div id="mapBox"></div>
     <button type="button" id="mpFollow" hidden>◎ ตามรถ</button>
-    <div class="mptop"><button type="button" id="mpHead">ทิศ: ตามรถ</button><button type="button" id="mpSnap">เกาะถนน: เปิด</button><button type="button" id="mpTraffic" aria-label="แสดงสภาพจราจร">🚦</button></div>
     <div class="mpbtns"><button type="button" id="mpGo">เริ่ม</button><button type="button" id="mpRst">รีเซ็ต</button><button type="button" id="mpSkin">◀ หน้าปัด</button></div>
     <div class="mpmsg" id="mpMsg"></div>
-    <button type="button" id="mpSearchBtn">🔍 ไปที่ไหน</button>
-    <button type="button" id="mpHistBtn">🕘 ประวัติ</button>
+    <div class="mpbar"><div class="mprow1"><button type="button" id="mpSearchBtn">🔍 ไปที่ไหน</button><button type="button" id="mpTraffic" aria-label="แสดงสภาพจราจร">🚦</button></div>
+      <div class="mpchips"><button type="button" id="mpHistBtn">🕘 ประวัติ</button><button type="button" id="mpHead">🧭 ตามรถ</button><button type="button" id="mpSnap">🛣 เกาะถนน</button></div></div>
     <div class="nvpanel" id="hsPanel" hidden>
       <div class="fvhead"><b>🕘 ประวัติการเดินทาง</b><button type="button" id="hsClose" aria-label="ปิด">✕</button></div>
       <ul id="hsList"></ul>
@@ -849,7 +856,7 @@ body.rot #skinDots{display:none!important}
     const src=map.getSource&&map.getSource('trk'); if(src) src.setData(lineGeo());
   }
   function setHeadUp(on){ headUp=on; try{localStorage.setItem('crv-headup',on?'1':'0')}catch(e){}
-    $('mpHead').classList.toggle('on',on); $('mpHead').textContent= on ? 'ทิศ: ตามรถ' : 'ทิศ: เหนือขึ้น'; follow=true; $('mpFollow').hidden=true; updMap(); }
+    $('mpHead').classList.toggle('on',on); $('mpHead').textContent= on ? '🧭 ตามรถ' : '🧭 เหนือขึ้น'; follow=true; $('mpFollow').hidden=true; updMap(); }
   function updMp(){
     if(document.body.dataset.c!=='map') return;
     const w=isLand()||!!rot; $('mp').classList.toggle('wide',w); if(w!==mpWide){ mpWide=w; if(map) setTimeout(()=>map.resize(),60); }
@@ -897,7 +904,7 @@ body.rot #skinDots{display:none!important}
     }catch(e){} finally{ snapBusy=false; }
   }
   function setSnap(on){ snapOn=on; try{localStorage.setItem('crv-snap',on?'1':'0')}catch(e){}
-    $('mpSnap').classList.toggle('on',on); $('mpSnap').textContent= on ? 'เกาะถนน: เปิด' : 'เกาะถนน: ปิด'; updMap(); }
+    $('mpSnap').classList.toggle('on',on); $('mpSnap').textContent= on ? '🛣 เกาะถนน' : '🛣 ไม่เกาะถนน'; updMap(); }
   $('mpSnap').onclick=()=>setSnap(!snapOn);
   setSnap(snapOn); setHeadUp(headUp);
   // ---- ค้นหาสถานที่ + นำทาง (Nominatim ค้นหา, OSRM หาเส้นทาง — ข้อมูล OpenStreetMap ฟรี) ----
@@ -942,7 +949,7 @@ body.rot #skinDots{display:none!important}
     try{
       const A=(plSwap&&!quiet)?dest:here, B=(plSwap&&!quiet)?here:dest, base=(nav&&nav.active)||quiet ? (ROUTERS[plMode]||OSRT) : (ROUTERS[plMode]||OSRT);
       let rt=null, coords, steps=[], tinfo=null;
-      if(plMode==='car' && ttKey){ try{ rt=await ttRoute(A,B); }catch(e){ if(e&&e.message==='ttkey'){ ls.del('crv-tt'); ttKey=''; setTrafficLayer(); $('mpMsg').textContent='TomTom key ใช้ไม่ได้ — กด 🚦 เพื่อใส่ใหม่'; } rt=null; } }
+      if(plMode==='car' && ttKey && Date.now()-ttQuota>3600000){ try{ rt=await ttRoute(A,B); }catch(e){ if(e&&e.message==='ttquota') $('mpMsg').textContent='โควตา TomTom ฟรีของเดือนนี้หมด — ใช้เส้นทางแบบไม่คิดจราจรแทนชั่วคราว'; if(e&&e.message==='ttkey'){ ls.del('crv-tt'); ttKey=''; setTrafficLayer(); $('mpMsg').textContent='TomTom key ใช้ไม่ได้ — กด 🚦 เพื่อใส่ใหม่'; } rt=null; } }
       let cum=[0];
       if(rt){ coords=rt.coords; for(let i=1;i<coords.length;i++) cum.push(cum[i-1]+hav({lat:coords[i-1][1],lon:coords[i-1][0]},{lat:coords[i][1],lon:coords[i][0]}));
         const k=cum[cum.length-1]/(rt.distance||cum[cum.length-1]||1); steps=rt.steps.map(x=>({st:x.st,at:x.at*k,said:0})); tinfo=rt.traffic; }
@@ -1089,7 +1096,7 @@ body.rot #skinDots{display:none!important}
 
   // ---- สภาพจราจร (TomTom) — key เก็บในเครื่องนี้เท่านั้น ไม่อยู่ในโค้ด ----
   // TomTom key ไม่อยู่ในโค้ด: ขอจากสคริปต์ CR-V Trip Log ด้วยรหัสผ่านของเจ้าของ แล้วจำไว้ในเครื่อง
-  let ttKey=ls.get('crv-tt',''), trafficOn=true;
+  let ttKey=ls.get('crv-tt',''), trafficOn=true, ttQuota=0;
   try{ trafficOn=localStorage.getItem('crv-traffic')!=='0'; }catch(e){}
   const TTMAN={TURN_LEFT:['turn','left'],TURN_RIGHT:['turn','right'],BEAR_LEFT:['turn','slight left'],BEAR_RIGHT:['turn','slight right'],
     KEEP_LEFT:['fork','slight left'],KEEP_RIGHT:['fork','slight right'],SHARP_LEFT:['turn','sharp left'],SHARP_RIGHT:['turn','sharp right'],
@@ -1100,7 +1107,7 @@ body.rot #skinDots{display:none!important}
   async function ttRoute(A,B){
     const u=`https://api.tomtom.com/routing/1/calculateRoute/${A.lat.toFixed(6)},${A.lon.toFixed(6)}:${B.lat.toFixed(6)},${B.lon.toFixed(6)}/json`+
       `?key=${encodeURIComponent(ttKey)}&traffic=true&routeType=fastest&travelMode=car&instructionsType=coded&sectionType=traffic&computeTravelTimeFor=all`;
-    const r=await fetch(u); if(r.status===401||r.status===403) throw new Error('ttkey'); if(!r.ok) throw new Error('tt');
+    const r=await fetch(u); if(r.status===401) throw new Error('ttkey'); if(r.status===403||r.status===429){ ttQuota=Date.now(); throw new Error('ttquota'); } if(!r.ok) throw new Error('tt');
     const j=await r.json(), rt=j.routes&&j.routes[0]; if(!rt) throw new Error('tt');
     const coords=[]; rt.legs.forEach(l=>l.points.forEach(p=>coords.push([p.longitude,p.latitude])));
     const steps=((rt.guidance&&rt.guidance.instructions)||[]).filter(i=>!/^WAYPOINT/.test(i.maneuver||'')).map(i=>{
