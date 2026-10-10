@@ -246,6 +246,47 @@ body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform
 #ts:not(.wide) .tsgrid{grid-auto-rows:1fr}
 #ts.wide .sv span{font-size:clamp(80px,min(46cqh,24cqw),340px)}
 #ts.wide .tt{font-size:clamp(12px,min(3.4cqh,2.2cqw),19px)}
+/* หน้ากากความเร็วคู่แผนที่ (Leaflet + OpenStreetMap) */
+.colors button.mapsw{background:radial-gradient(circle,#1e6bff 0 26%,#fff 29% 40%,#9fd18b 43%);box-shadow:0 0 0 1px #6f9a62}
+body.mapOn{background:#0e1114}
+body.mapOn>header,body.mapOn>main,body.mapOn>.controls{display:none!important}
+#mp{display:none}
+body.mapOn #mp{display:grid;position:fixed;inset:0;grid-template-rows:minmax(0,38%) 1fr;background:#0e1114;color:#f2f4f6}
+body.rot.mapOn #mp{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform:translate(-50%,-50%) rotate(var(--r,90deg))}
+body.mapOn #mp.wide{grid-template-rows:1fr;grid-template-columns:minmax(0,42%) 1fr}
+.mpspd{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:1fr auto;align-items:center;padding:max(10px,env(safe-area-inset-top)) 16px 10px;min-height:0;container-type:size;
+  --seg:#3ff6ff;--segoff:rgba(63,246,255,.07);--over:#ff4d3d}
+.mpv{grid-column:1;justify-self:center;min-height:0}
+.mpv svg{height:min(64cqh,40cqw);width:auto;max-width:100%;display:block;filter:drop-shadow(0 0 6px rgba(63,246,255,.75)) drop-shadow(0 0 22px rgba(63,246,255,.35))}
+#mp.wide .mpv svg{height:min(46cqh,40cqw)}
+.mpu{grid-column:2;align-self:end;font:700 clamp(16px,4cqw,26px) var(--display);color:#3ff6ff;text-shadow:0 0 8px rgba(63,246,255,.7);padding-bottom:1.2em}
+.mpst{grid-column:1/3;display:flex;justify-content:space-between;gap:10px;border-top:1px solid #262c32;padding-top:8px}
+.mpst span{display:flex;flex-direction:column;min-width:0}
+.mpst small{font-size:.75rem;color:#7fb7bd}
+.mpst b{color:#3ff6ff;text-shadow:0 0 6px rgba(63,246,255,.65),0 0 16px rgba(63,246,255,.3);font:700 clamp(15px,4.4cqw,24px) var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+#mp.wide .mpst{flex-direction:column;gap:6px}
+#mp.wide .mpst span{flex-direction:row;justify-content:space-between;align-items:baseline}
+.mpspd.over .mpv .on{fill:#ff4d3d}
+.mpspd.over .mpv svg{filter:drop-shadow(0 0 6px rgba(255,77,61,.8)) drop-shadow(0 0 22px rgba(255,77,61,.35))}
+.mpst{border-top-color:rgba(63,246,255,.25)}
+body.mapOn #mp{background:#05080a}
+.mpmap{position:relative;min-height:0}
+#mapBox{position:absolute;inset:0;background:#dfe5e9}
+.mpbtns{position:absolute;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:500;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px}
+.mpbtns button,#mpFollow{font:700 1rem var(--display);padding:12px 6px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.94);color:#14181c;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.mpbtns #mpGo{background:#1e6bff;color:#fff;border-color:#1e6bff}
+.mpbtns #mpGo.running{background:#fff;color:#c62828;border-color:#c62828}
+#mpFollow{position:absolute;right:10px;top:56px;z-index:500;padding:8px 12px}
+.mptop{position:absolute;right:10px;top:10px;z-index:500;display:flex;gap:6px}
+#mpSnap,#mpHead{font:700 .85rem var(--display);padding:8px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.94);color:#5c6670;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+#mpSnap.on,#mpHead.on{background:#1e6bff;color:#fff;border-color:#1e6bff}
+#mp .maplibregl-ctrl-bottom-right,#mp .maplibregl-ctrl-bottom-left{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 54px)}
+.mpmsg{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 58px);z-index:500;font:600 .85rem var(--body);color:#14181c;background:rgba(255,255,255,.88);border-radius:8px;padding:4px 8px;text-align:center}
+.mpmsg:empty{display:none}
+.carmk{background:none;border:0}
+.carar{width:34px;height:34px;transition:transform .4s}
+.carar svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
+.carar.nohead .arw{display:none} .carar:not(.nohead) .dot{display:none}
 @media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
@@ -297,6 +338,7 @@ body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform
       <button type="button" data-c="yellow" style="--c:#ffd60a" aria-label="สีเหลือง"></button>
       <button type="button" data-c="lcd" class="lcdsw" aria-label="จอ LCD เครื่องมือสำรวจ"></button>
       <button type="button" data-c="paper" class="papersw" aria-label="จอขาว เครื่องมือสำรวจ"></button>
+      <button type="button" data-c="map" class="mapsw" aria-label="ความเร็วคู่แผนที่"></button>
       <button type="button" data-c="ts" class="tssw" aria-label="จอกล้อง Total Station"></button>
     </div>
   </div>
@@ -319,6 +361,18 @@ body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform
   <button id="resetBtn">รีเซ็ต</button>
 </div>
 
+<div id="mp" hidden>
+  <div class="mpspd" id="mpSpdBox">
+    <div class="mpv seg" id="mpSp"></div><div class="mpu">km/h</div>
+    <div class="mpst"><span><small>ระยะทาง</small><b id="mpD">0.00 km</b></span><span><small>เวลาวิ่ง</small><b id="mpT">0:00:00</b></span><span><small>Az</small><b id="mpA">---°</b></span></div>
+  </div>
+  <div class="mpmap"><div id="mapBox"></div>
+    <button type="button" id="mpFollow" hidden>◎ ตามรถ</button>
+    <div class="mptop"><button type="button" id="mpHead">ทิศ: ตามรถ</button><button type="button" id="mpSnap">เกาะถนน: เปิด</button></div>
+    <div class="mpbtns"><button type="button" id="mpGo">เริ่ม</button><button type="button" id="mpRst">รีเซ็ต</button><button type="button" id="mpSkin">หน้ากาก ▸</button></div>
+    <div class="mpmsg" id="mpMsg"></div>
+  </div>
+</div>
 <div id="ts" hidden>
   <div class="tsdev">
   <div class="tsscr">
@@ -421,12 +475,15 @@ body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform
     if(bad){ ls.del('crv-key'); note('รหัสบันทึกทริปไม่ถูกต้อง — แตะตรงนี้เพื่อใส่ใหม่',true); }
     else note(left.length ? `ยังส่งไม่ได้ (ไม่มีเน็ต?) — เก็บทริปไว้ ${left.length} รายการ จะส่งให้อีกครั้งอัตโนมัติ` : 'บันทึกทริปลงปฏิทินและชีตแล้ว ✓');
   }
-  function resetTrip(){dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur');}
+  function resetTrip(){dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur'); trackPts=[]; if(trk) trk.setLatLngs([]);}
   const isBig=()=>document.body.classList.contains('big');
   const landMQ=matchMedia('(orientation:landscape) and (max-height:600px)'), isLand=()=>landMQ.matches;
   let rot=0;
   // ---- ธีม LCD: แถบทิศ พิกัด ระยะทาง ความแม่นยำ ----
   let head=null, fix=null, lastTape=null;
+  let map=null, mk=null, trk=null, follow=true, LL=null, trackPts=[], mpWide=null;
+  let snapOn=true, snapBusy=false, lastSnap=0, snapHead=null;
+  try{ snapOn=localStorage.getItem('crv-snap')!=='0'; }catch(e){}
   function brg(a,b){const t=x=>x*Math.PI/180,y=Math.sin(t(b.lon-a.lon))*Math.cos(t(b.lat)),
     x=Math.cos(t(a.lat))*Math.sin(t(b.lat))-Math.sin(t(a.lat))*Math.cos(t(b.lat))*Math.cos(t(b.lon-a.lon));return (Math.atan2(y,x)*180/Math.PI+360)%360;}
   function dms(v,p,n){const a=Math.abs(v),d=Math.floor(a),m=Math.floor((a-d)*60),s=Math.round(((a-d)*60-m)*60);
@@ -472,7 +529,7 @@ body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform
       $('prog').style.stroke=over?'var(--over)':'var(--seg)';
       $('gSpeed').innerHTML=segSVG(String(spd)); $('gSpeed').classList.toggle('over',over);
     }
-    renderStats(); if(typeof updLcd==='function') updLcd(); if(typeof updTs==='function') updTs();
+    renderStats(); if(typeof updLcd==='function') updLcd(); if(typeof updTs==='function') updTs(); if(typeof updMp==='function') updMp();
   }
 
   let ac=null;
@@ -514,6 +571,8 @@ body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform
     if(c.heading!=null && !isNaN(c.heading) && kmh>=5) head=c.heading;
     else if(last && kmh>=5 && hav(last,cur)>8) head=brg(last,cur);
     fix=cur;
+    if(kmh>0){ const lp=trackPts[trackPts.length-1]; if(!lp || hav(lp,cur)>5) trackPts.push({lat:cur.lat,lon:cur.lon,t:now,acc:acc,s:null}); if(trackPts.length>8000) trackPts.shift(); }
+    if(map){ updMap(); if(kmh>0) snapRoad(); }
     lastKmh=kmh; last=cur;
     render(kmh);
   }
@@ -560,8 +619,8 @@ body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform
   try{setBig(localStorage.getItem('crv-big')==='1')}catch(e){setBig(false)}
   $('modeBtn').onclick=()=>setBig(!isBig());
   $('dial').onclick=()=>setBig(true); $('dSpeed').onclick=()=>{ if(Date.now()-swiped<400) return; if(isLand()||rot) nextColor(); else setBig(false);};
-  const COLORS=['cyan','green','red','yellow','lcd','paper','ts'];
-  function setColor(c){ if(!COLORS.includes(c)) c='cyan'; document.body.dataset.c=c; document.body.classList.toggle('instr',c==='lcd'||c==='paper'); document.body.classList.toggle('tsOn',c==='ts'); $('ts').hidden=c!=='ts'; setTimeout(()=>render(lastKmh),0);
+  const COLORS=['cyan','green','red','yellow','lcd','paper','map','ts'];
+  function setColor(c){ if(!COLORS.includes(c)) c='cyan'; document.body.dataset.c=c; document.body.classList.toggle('instr',c==='lcd'||c==='paper'); document.body.classList.toggle('tsOn',c==='ts'); $('ts').hidden=c!=='ts'; document.body.classList.toggle('mapOn',c==='map'); $('mp').hidden=c!=='map'; if(c==='map') setTimeout(initMap,0); setTimeout(()=>render(lastKmh),0);
     document.querySelectorAll('#colorSw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c));
     try{localStorage.setItem('crv-color',c)}catch(e){} }
   function nextColor(step=1){ setColor(COLORS[(COLORS.indexOf(document.body.dataset.c||'cyan')+step+COLORS.length)%COLORS.length]); showSkin(); }
@@ -602,14 +661,101 @@ body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform
   $('tF4').onclick=()=>{ swiped=Date.now(); nextColor(1); };
   try{ new MutationObserver(()=>updTs()).observe($('msg'),{childList:true,characterData:true,subtree:true,attributes:true}); }catch(e){}
   setInterval(()=>{ if(document.body.dataset.c==='ts') updTs(); },1000);
-  const SKIN_NAME={cyan:'สีฟ้า',green:'สีเขียว',red:'สีแดง',yellow:'สีเหลือง',lcd:'จอ LCD เครื่องมือสำรวจ',paper:'จอขาว เครื่องมือสำรวจ',ts:'จอกล้อง Total Station'};
+  // ---- หน้ากากความเร็วคู่แผนที่: MapLibre GL JS + OpenFreeMap (ข้อมูล OpenStreetMap) ----
+  const MLJS='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js', MLCSS='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css';
+  const MSTYLE='https://tiles.openfreemap.org/styles/liberty';
+  const CAR='<div class="carar"><svg viewBox="0 0 34 34"><g class="arw"><path d="M17 3 L28 29 L17 23 L6 29Z" fill="#1e6bff" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></g><g class="dot"><circle cx="17" cy="17" r="9" fill="#1e6bff" stroke="#fff" stroke-width="3"/></g></svg></div>';
+  let headUp=true; try{ headUp=localStorage.getItem('crv-headup')!=='0'; }catch(e){}
+  function loadLeaflet(){ if(LL) return LL; LL=new Promise((res,rej)=>{ const l=document.createElement('link'); l.rel='stylesheet'; l.href=MLCSS; document.head.appendChild(l);
+      const sc=document.createElement('script'); sc.src=MLJS; sc.onload=res; sc.onerror=()=>{LL=null;rej();}; document.head.appendChild(sc); }); return LL; }
+  const lineGeo=()=>({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:trackLL().map(p=>[p[1],p[0]])}});
+  async function initMap(){
+    if(map){ map.resize(); updMap(); return; }
+    try{ await loadLeaflet(); }catch(e){ $('mpMsg').textContent='โหลดแผนที่ไม่ได้ — ต้องต่ออินเทอร์เน็ต'; return; }
+    if(map) return;
+    try{
+      map=new maplibregl.Map({container:'mapBox',style:MSTYLE,center:fix?[fix.lon,fix.lat]:[102.8360,16.4419],zoom:16.5,pitch:headUp?50:0,
+        attributionControl:{compact:true},dragRotate:true,pitchWithRotate:false});
+    }catch(e){ map=null; $('mpMsg').textContent='เครื่องนี้แสดงแผนที่ 3 มิติไม่ได้ (ไม่รองรับ WebGL)'; return; }
+    map.addControl(new maplibregl.NavigationControl({showCompass:true,visualizePitch:true}),'top-left');
+    map.on('load',()=>{
+      map.addSource('trk',{type:'geojson',data:lineGeo()});
+      map.addLayer({id:'trk-casing',type:'line',source:'trk',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#ffffff','line-width':9,'line-opacity':.9}});
+      map.addLayer({id:'trk',type:'line',source:'trk',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#1e6bff','line-width':5}});
+      updMap();
+    });
+    const el=document.createElement('div'); el.className='carmk'; el.innerHTML=CAR;
+    mk=new maplibregl.Marker({element:el,rotationAlignment:'map',pitchAlignment:'map'});
+    map.on('dragstart',()=>{ follow=false; $('mpFollow').hidden=false; });
+    setTimeout(()=>map.resize(),60);
+  }
+  let mkOn=false;
+  function updMap(){
+    if(!map) return;
+    if(fix){ const lp=trackPts[trackPts.length-1];
+      const o = snapOn ? snapOff() : null, useSnap = !!o && (fix.t-o.t)<12000;
+      const ll = useSnap ? [fix.lat+o.d[0], fix.lon+o.d[1]] : [fix.lat,fix.lon];
+      const hd = (useSnap && snapHead!=null) ? snapHead : head;
+      mk.setLngLat([ll[1],ll[0]]); if(!mkOn){ mk.addTo(map); mkOn=true; }
+      mk.setRotation(hd||0); const a=mk.getElement().querySelector('.carar'); if(a) a.classList.toggle('nohead',hd==null);
+      if(follow){ const h=map.getContainer().clientHeight;
+        map.easeTo({center:[ll[1],ll[0]],bearing:(headUp&&hd!=null)?hd:(headUp?map.getBearing():0),pitch:headUp?50:0,
+          padding:{top:headUp?Math.round(h*0.38):0,bottom:0,left:0,right:0},duration:900,essential:true}); } }
+    const src=map.getSource&&map.getSource('trk'); if(src) src.setData(lineGeo());
+  }
+  function setHeadUp(on){ headUp=on; try{localStorage.setItem('crv-headup',on?'1':'0')}catch(e){}
+    $('mpHead').classList.toggle('on',on); $('mpHead').textContent= on ? 'ทิศ: ตามรถ' : 'ทิศ: เหนือขึ้น'; follow=true; $('mpFollow').hidden=true; updMap(); }
+  function updMp(){
+    if(document.body.dataset.c!=='map') return;
+    const w=isLand()||!!rot; $('mp').classList.toggle('wide',w); if(w!==mpWide){ mpWide=w; if(map) setTimeout(()=>map.resize(),60); }
+    const spd=Math.round(shown), lim=+$('limitSel').value, over=lim>0&&shown>lim;
+    $('mpSp').innerHTML=segSVG(String(spd).padStart(3,' ')); $('mpSpdBox').classList.toggle('over',over);
+    $('mpD').textContent=(dist/1000).toFixed(2)+' km'; $('mpT').textContent=fmtTime(movingMs);
+    $('mpA').textContent= head==null ? '---°' : String(Math.round(head)%360).padStart(3,'0')+'°';
+    $('mpGo').textContent= watchId!=null ? 'หยุด' : 'เริ่ม'; $('mpGo').classList.toggle('running',watchId!=null);
+    $('mpMsg').textContent=$('msg').textContent;
+  }
+  $('mpFollow').onclick=()=>{ follow=true; $('mpFollow').hidden=true; updMap(); };
+  $('mpHead').onclick=()=>setHeadUp(!headUp);
+  $('mpGo').onclick=()=>{ $('startBtn').click(); updMp(); };
+  $('mpRst').onclick=()=>{ $('resetBtn').click(); updMp(); };
+  $('mpSkin').onclick=()=>{ swiped=Date.now(); nextColor(1); };
+  try{ new MutationObserver(()=>updMp()).observe($('msg'),{childList:true,characterData:true,subtree:true}); }catch(e){}
+  // ---- เกาะถนน (map matching) ด้วย OSRM บนข้อมูลถนน OpenStreetMap ----
+  const OSRM='https://router.project-osrm.org/match/v1/driving/';
+  // จุดล่าสุดที่ยังไม่ได้เกาะถนน: เลื่อนตามระยะเลื่อนของจุดล่าสุดที่เกาะแล้ว (อยู่ถนนเส้นเดียวกัน) เส้นจะได้ไม่หักออกนอกถนน
+  function snapOff(){ for(let i=trackPts.length-1;i>=0;i--){ const p=trackPts[i]; if(p.s) return {i, t:p.t, d:[p.s[0]-p.lat, p.s[1]-p.lon]}; } return null; }
+  const trackLL=()=>{ if(!snapOn) return trackPts.map(p=>[p.lat,p.lon]); const o=snapOff();
+    return trackPts.map((p,i)=> p.s ? p.s : (o && i>o.i && p.t-o.t<12000) ? [p.lat+o.d[0], p.lon+o.d[1]] : [p.lat,p.lon]); };
+  async function snapRoad(){
+    if(!snapOn||snapBusy||!navigator.onLine||Date.now()-lastSnap<2500) return;
+    const pts=trackPts.slice(-10); if(pts.length<2) return;
+    snapBusy=true; lastSnap=Date.now();
+    try{
+      let ts=pts.map(p=>Math.floor(p.t/1000)); for(let i=1;i<ts.length;i++) if(ts[i]<=ts[i-1]) ts[i]=ts[i-1]+1;
+      const url=OSRM+pts.map(p=>p.lon.toFixed(6)+','+p.lat.toFixed(6)).join(';')+
+        '?timestamps='+ts.join(';')+'&radiuses='+pts.map(p=>Math.round(Math.min(40,Math.max(12,p.acc*2.5)))).join(';')+'&overview=false&gaps=ignore';
+      const r=await fetch(url); const j=await r.json();
+      if(j.code==='Ok' && j.tracepoints){
+        j.tracepoints.forEach((tp,i)=>{ if(tp&&tp.location) pts[i].s=[tp.location[1],tp.location[0]]; });
+        const sn=pts.filter(p=>p.s); if(sn.length>=2){ const a=sn[sn.length-1], b=sn.slice().reverse().find(p=>hav({lat:p.s[0],lon:p.s[1]},{lat:a.s[0],lon:a.s[1]})>8);
+          if(b) snapHead=brg({lat:b.s[0],lon:b.s[1]},{lat:a.s[0],lon:a.s[1]}); }
+        updMap();
+      }
+    }catch(e){} finally{ snapBusy=false; }
+  }
+  function setSnap(on){ snapOn=on; try{localStorage.setItem('crv-snap',on?'1':'0')}catch(e){}
+    $('mpSnap').classList.toggle('on',on); $('mpSnap').textContent= on ? 'เกาะถนน: เปิด' : 'เกาะถนน: ปิด'; updMap(); }
+  $('mpSnap').onclick=()=>setSnap(!snapOn);
+  setSnap(snapOn); setHeadUp(headUp);
+  const SKIN_NAME={cyan:'สีฟ้า',green:'สีเขียว',red:'สีแดง',yellow:'สีเหลือง',lcd:'จอ LCD เครื่องมือสำรวจ',paper:'จอขาว เครื่องมือสำรวจ',map:'ความเร็วคู่แผนที่',ts:'จอสัมผัส ตัวควบคุมงานสำรวจ'};
   let toastT=null;
   function showSkin(){const t=$('skinToast'); t.textContent=SKIN_NAME[document.body.dataset.c]||''; t.style.setProperty('--tr',(rot||0)+'deg');
     t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1100);}
   // ปัดซ้าย/ขวา (ทั้งแนวตั้งและแนวนอน) = เปลี่ยนหน้ากาก
   let sw=null;
   document.addEventListener('touchstart',e=>{ if(e.touches.length!==1){sw=null;return;}
-    const t=e.touches[0]; if(t.target.closest('select')){sw=null;return;}
+    const t=e.touches[0]; if(t.target.closest('select')||t.target.closest('#mapBox')){sw=null;return;}
     if(t.clientX<28||t.clientX>innerWidth-28){sw=null;return;}               // เว้นขอบจอ (ท่าย้อนกลับของมือถือ)
     sw={x:t.clientX,y:t.clientY,t:Date.now()}; },{passive:true});
   document.addEventListener('touchend',e=>{ if(!sw) return; const t=e.changedTouches[0];
