@@ -191,7 +191,7 @@ body.tsOn>header,body.tsOn>main,body.tsOn>.controls{display:none!important}
 body.tsOn #ts{display:block;position:fixed;inset:0;padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));box-sizing:border-box}
 body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform:translate(-50%,-50%) rotate(var(--r,90deg))}
 .tsdev{height:100%;box-sizing:border-box;padding:10px;border-radius:22px;background:linear-gradient(160deg,#f4f5f6,#dfe3e6);box-shadow:inset 0 1px 0 #fff,0 2px 10px rgba(0,0,0,.18)}
-.tsscr{height:100%;display:grid;grid-template-rows:auto 1fr auto auto;border-radius:12px;overflow:hidden;background:#f6f8fa;color:#1d232a;
+.tsscr{height:100%;display:grid;grid-template-rows:auto 1fr auto auto auto;border-radius:12px;overflow:hidden;background:#f6f8fa;color:#1d232a;
   box-shadow:0 0 0 5px #23272b,0 0 0 6px #4a5056;container-type:size;font-family:"Times New Roman",Tinos,"Sarabun",serif}
 .tsbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:.35em .8em;background:#fff;border-bottom:1px solid #dde2e7;font-size:clamp(13px,min(3.2cqh,4.2cqw),22px);white-space:nowrap}
 .tstitle{font-weight:700}
@@ -227,6 +227,11 @@ body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform
 .tv{font-size:1.75em;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:#11161b;overflow:hidden;text-overflow:ellipsis}
 .tpos{display:flex;flex-direction:column;align-items:flex-end;font-size:1.15em;line-height:1.15}
 .tsmsg{min-height:1.1em;padding:0 .9em .2em;font:clamp(12px,min(2.6cqh,3.6cqw),18px) "Sarabun",sans-serif;color:#5c6670}
+.tsdots{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;border-top:1px solid #dde2e7;background:#fff;font:600 .9rem "Sarabun",sans-serif;color:#5c6670}
+.tsdots .dw{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.tsdots button{width:22px;height:22px;padding:0;border-radius:50%;border:2px solid transparent;box-shadow:0 0 0 1px #c3ccd5}
+.tsdots button[aria-pressed="true"]{border-color:#1d5fa8;box-shadow:0 0 0 2px #fff,0 0 0 3px #1d5fa8}
+#ts.wide .tsdots{display:none}
 .tskeys{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid #dde2e7}
 .tskeys button{display:flex;align-items:center;justify-content:center;gap:.45em;padding:.7em 0;background:none;border:0;border-left:1px solid #e4e8ec;border-radius:0;
   font:700 clamp(13px,min(2.8cqh,4cqw),20px) "Times New Roman",Tinos,serif;color:#1d232a;letter-spacing:.04em}
@@ -351,6 +356,17 @@ body.mapOn #mp{background:#05080a}
   .nvfoot,.nvpick,.nvprev{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 102px)} .mpmsg{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 102px)}
   #mp.nav .mpmsg{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 152px)} #mp .maplibregl-ctrl-bottom-right,#mp .maplibregl-ctrl-bottom-left{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 98px)}
   .controls{padding-bottom:56px} }
+/* จุดเลือกหน้ากาก (สำหรับหน้ากากที่ไม่มีแถวสี: จอสัมผัส และแผนที่) */
+#skinDots{display:none;position:fixed;left:50%;transform:translateX(-50%);z-index:60;gap:7px;padding:6px 9px;border-radius:20px;background:rgba(10,14,18,.55);backdrop-filter:blur(4px)}
+#skinDots button{width:18px;height:18px;padding:0;border-radius:50%;border:2px solid transparent;background:var(--c);box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+#skinDots button[aria-pressed="true"]{border-color:#fff;transform:scale(1.15)}
+
+#ts.wide ~ #skinDots,
+body.mapOn #skinDots{display:flex;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 66px)}
+body.mapOn:has(#mp.nav) #skinDots,body.mapOn:has(.nvprev:not([hidden])) #skinDots,body.mapOn:has(.nvpick:not([hidden])) #skinDots,body.mapOn:has(.nvpanel:not([hidden])) #skinDots{display:none}
+body.rot #skinDots{display:none!important}
+@media (orientation:landscape) and (max-height:600px){ body.tsOn #skinDots{display:none} }
+@media (display-mode: fullscreen){ body.tsOn #skinDots{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 118px)} body.mapOn #skinDots{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 110px)} }
 @media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
@@ -433,7 +449,7 @@ body.mapOn #mp{background:#05080a}
   <div class="mpmap"><div id="mapBox"></div>
     <button type="button" id="mpFollow" hidden>◎ ตามรถ</button>
     <div class="mptop"><button type="button" id="mpHead">ทิศ: ตามรถ</button><button type="button" id="mpSnap">เกาะถนน: เปิด</button></div>
-    <div class="mpbtns"><button type="button" id="mpGo">เริ่ม</button><button type="button" id="mpRst">รีเซ็ต</button><button type="button" id="mpSkin">หน้ากาก ▸</button></div>
+    <div class="mpbtns"><button type="button" id="mpGo">เริ่ม</button><button type="button" id="mpRst">รีเซ็ต</button><button type="button" id="mpSkin">◀ หน้าปัด</button></div>
     <div class="mpmsg" id="mpMsg"></div>
     <button type="button" id="mpSearchBtn">🔍 ไปที่ไหน</button>
     <button type="button" id="mpHistBtn">🕘 ประวัติ</button>
@@ -460,6 +476,7 @@ body.mapOn #mp{background:#05080a}
     <div class="nvpick" id="nvPick" hidden><span>📍 <span id="nvPickTxt"></span></span><button type="button" id="nvPickFav" aria-label="บันทึกเป็นสถานที่ใช้บ่อย">⭐</button><button type="button" id="nvPickGo">เลือกจุดนี้</button><button type="button" id="nvPickNo" aria-label="ยกเลิก">✕</button></div>
   </div>
 </div>
+<div id="skinDots" aria-label="เลือกหน้ากาก"></div>
 <div id="ts" hidden>
   <div class="tsdev">
   <div class="tsscr">
@@ -477,6 +494,7 @@ body.mapOn #mp{background:#05080a}
       </div>
     </div>
     <div class="tsmsg" id="tsMsg"></div>
+    <div class="tsdots" id="tsDots" aria-label="เลือกหน้ากาก"><span>หน้ากาก</span><div class="dw"></div></div>
     <div class="tskeys">
       <button type="button" id="tF1"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>START</button>
       <button type="button" id="tF2"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg>RESET</button>
@@ -712,7 +730,7 @@ body.mapOn #mp{background:#05080a}
   $('modeBtn').onclick=()=>setBig(!isBig());
   $('dial').onclick=()=>setBig(true); $('dSpeed').onclick=()=>{ if(Date.now()-swiped<400) return; if(isLand()||rot) nextColor(); else setBig(false);};
   const COLORS=['cyan','green','red','yellow','lcd','paper','map','ts'];
-  function setColor(c){ if(!COLORS.includes(c)) c='cyan'; document.body.dataset.c=c; document.body.classList.toggle('instr',c==='lcd'||c==='paper'); document.body.classList.toggle('tsOn',c==='ts'); $('ts').hidden=c!=='ts'; document.body.classList.toggle('mapOn',c==='map'); $('mp').hidden=c!=='map'; if(c==='map'){ setTimeout(initMap,0); if(typeof watchId!=='undefined' && watchId==null && typeof start==='function') setTimeout(start,0); } setTimeout(()=>render(lastKmh),0);
+  function setColor(c){ if(!COLORS.includes(c)) c='cyan'; if(c!=='map'){ try{localStorage.setItem('crv-lastskin',c)}catch(e){} } document.body.dataset.c=c; document.body.classList.toggle('instr',c==='lcd'||c==='paper'); document.body.classList.toggle('tsOn',c==='ts'); $('ts').hidden=c!=='ts'; document.body.classList.toggle('mapOn',c==='map'); $('mp').hidden=c!=='map'; if(c==='map'){ setTimeout(initMap,0); if(typeof watchId!=='undefined' && watchId==null && typeof start==='function') setTimeout(start,0); } setTimeout(()=>render(lastKmh),0);
     document.querySelectorAll('#colorSw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c));
     try{localStorage.setItem('crv-color',c)}catch(e){} }
   function nextColor(step=1){ setColor(COLORS[(COLORS.indexOf(document.body.dataset.c||'cyan')+step+COLORS.length)%COLORS.length]); showSkin(); }
@@ -816,7 +834,13 @@ body.mapOn #mp{background:#05080a}
   $('mpHead').onclick=()=>setHeadUp(!headUp);
   $('mpGo').onclick=()=>{ $('startBtn').click(); updMp(); };
   $('mpRst').onclick=()=>{ $('resetBtn').click(); updMp(); };
-  $('mpSkin').onclick=()=>{ swiped=Date.now(); nextColor(1); };
+  [ $('skinDots'), document.querySelector('#tsDots .dw') ].forEach(box=>{ document.querySelectorAll('#colorSw button').forEach(src=>{ const b=document.createElement('button'); b.type='button';
+      b.dataset.c=src.dataset.c; b.setAttribute('aria-label',src.getAttribute('aria-label')||src.dataset.c); b.style.cssText=src.getAttribute('style')||'';
+      b.style.background=getComputedStyle(src).backgroundImage!=='none'?getComputedStyle(src).backgroundImage:getComputedStyle(src).backgroundColor;
+      b.onclick=()=>{ swiped=Date.now(); setColor(b.dataset.c); showSkin(); }; box.appendChild(b); });
+    const sync=()=>box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===document.body.dataset.c));
+    sync(); new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-c']}); });
+  $('mpSkin').onclick=()=>{ swiped=Date.now(); let b='cyan'; try{ b=localStorage.getItem('crv-lastskin')||'cyan'; }catch(e){} setColor(b==='map'?'cyan':b); showSkin(); };
   try{ new MutationObserver(()=>updMp()).observe($('msg'),{childList:true,characterData:true,subtree:true}); }catch(e){}
   // ---- เกาะถนน (map matching) ด้วย OSRM บนข้อมูลถนน OpenStreetMap ----
   const OSRM='https://router.project-osrm.org/match/v1/driving/';
