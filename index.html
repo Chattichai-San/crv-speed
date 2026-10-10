@@ -54,12 +54,22 @@ button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
 .msg{text-align:center;font-size:.9rem;color:var(--muted);min-height:1.3em}
 .msg.err{color:var(--warn)}
 @media (prefers-reduced-motion:reduce){#needle{transition:none!important}}
+
+.hdr-r{display:flex;align-items:center;gap:12px}
+.mode{font:700 .85rem var(--display);padding:8px 12px;border-radius:10px;background:var(--panel);color:var(--fg);border:1px solid var(--line);letter-spacing:.04em}
+body.big .gauge svg{display:none}
+body.big .readout{position:static}
+body.big .speed{font-size:min(64vw,52vh);line-height:.85;letter-spacing:-.04em}
+body.big .unit{font-size:1.5rem;margin-top:8px}
+body.big .stats .stat .v{font-size:1.2rem}
+body.big main{justify-content:space-evenly}
+@media (orientation:landscape){body.big .speed{font-size:min(40vw,62vh)}body.big .stats,body.big .limit{display:none}}
 </style>
 </head>
 <body>
 <header>
   <h1>Honda CR-V · GPS</h1>
-  <div class="gps"><span class="dot" id="dot"></span><span id="acc">GPS ปิด</span></div>
+  <div class="hdr-r"><div class="gps"><span class="dot" id="dot"></span><span id="acc">GPS ปิด</span></div><button class="mode" id="modeBtn" type="button">ตัวใหญ่</button></div>
 </header>
 
 <main>
@@ -231,6 +241,11 @@ button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
     }});
   try{const s=localStorage.getItem('crv-limit'); if(s) $('limitSel').value=s;}catch(e){}
   $('limitSel').onchange=e=>{try{localStorage.setItem('crv-limit',e.target.value);}catch(_){}};
+  // โหมดตัวเลขใหญ่: กดปุ่มหรือแตะที่ตัวเลข เพื่อสลับ — แอปจำค่าไว้
+  function setBig(on){document.body.classList.toggle('big',on);$('modeBtn').textContent=on?'มีเข็ม':'ตัวใหญ่';try{localStorage.setItem('crv-big',on?'1':'0')}catch(e){}}
+  try{setBig(localStorage.getItem('crv-big')==='1')}catch(e){setBig(false)}
+  $('modeBtn').onclick=()=>setBig(!document.body.classList.contains('big'));
+  speedEl.onclick=()=>setBig(!document.body.classList.contains('big'));
   render(0);
   // เปิด GPS อัตโนมัติเมื่อเปิดแอป (ครั้งแรก Chrome จะถามสิทธิ์ครั้งเดียว)
   start();
