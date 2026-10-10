@@ -942,7 +942,7 @@ body.rot #skinDots{display:none!important}
     try{
       const A=(plSwap&&!quiet)?dest:here, B=(plSwap&&!quiet)?here:dest, base=(nav&&nav.active)||quiet ? (ROUTERS[plMode]||OSRT) : (ROUTERS[plMode]||OSRT);
       let rt=null, coords, steps=[], tinfo=null;
-      if(plMode==='car' && ttKey){ try{ rt=await ttRoute(A,B); }catch(e){ if(e&&e.message==='ttkey'){ ttKey=''; ls.del('crv-tt'); setTrafficLayer(); $('mpMsg').textContent='TomTom key ใช้ไม่ได้ — กด 🚦 เพื่อใส่ใหม่'; } rt=null; } }
+      if(plMode==='car' && ttKey){ try{ rt=await ttRoute(A,B); }catch(e){ if(e&&e.message==='ttkey'){ ls.del('crv-tt'); ttKey=''; setTrafficLayer(); $('mpMsg').textContent='TomTom key ใช้ไม่ได้ — กด 🚦 เพื่อใส่ใหม่'; } rt=null; } }
       let cum=[0];
       if(rt){ coords=rt.coords; for(let i=1;i<coords.length;i++) cum.push(cum[i-1]+hav({lat:coords[i-1][1],lon:coords[i-1][0]},{lat:coords[i][1],lon:coords[i][0]}));
         const k=cum[cum.length-1]/(rt.distance||cum[cum.length-1]||1); steps=rt.steps.map(x=>({st:x.st,at:x.at*k,said:0})); tinfo=rt.traffic; }
@@ -1057,7 +1057,7 @@ body.rot #skinDots{display:none!important}
 
   // ---- ประวัติการเดินทาง (อ่านจาก Google Sheet/Drive ผ่านสคริปต์ CR-V Trip Log) ----
   let hsLayer=false;
-  async function api(body){ let key=ls.get('crv-key',''); if(!key){ key=(prompt('ใส่รหัสบันทึกทริป')||'').trim(); if(!key) throw new Error('nokey'); ls.set('crv-key',key); }
+  async function api(body){ let key=ls.get('crv-key',''); if(!key){ key=(prompt('ใส่รหัสผ่าน (รหัสเดียวกับรหัสบันทึกทริป)')||'').trim(); if(!key) throw new Error('nokey'); ls.set('crv-key',key); }
     const r=await fetch(LOG_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({key},body))});
     const j=await r.json(); if(j.error==='key'){ ls.del('crv-key'); throw new Error('key'); } if(!j.ok) throw new Error(j.error||'x'); return j; }
   const thDate=iso=>{ const d=new Date(iso); return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'})+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
@@ -1088,6 +1088,7 @@ body.rot #skinDots{display:none!important}
   $('hsX').onclick=()=>{ $('hsCard').hidden=true; clearHist(); follow=true; $('mpFollow').hidden=true; updMap(); };
 
   // ---- สภาพจราจร (TomTom) — key เก็บในเครื่องนี้เท่านั้น ไม่อยู่ในโค้ด ----
+  // TomTom key ไม่อยู่ในโค้ด: ขอจากสคริปต์ CR-V Trip Log ด้วยรหัสผ่านของเจ้าของ แล้วจำไว้ในเครื่อง
   let ttKey=ls.get('crv-tt',''), trafficOn=true;
   try{ trafficOn=localStorage.getItem('crv-traffic')!=='0'; }catch(e){}
   const TTMAN={TURN_LEFT:['turn','left'],TURN_RIGHT:['turn','right'],BEAR_LEFT:['turn','slight left'],BEAR_RIGHT:['turn','slight right'],
@@ -1119,8 +1120,19 @@ body.rot #skinDots{display:none!important}
       tiles:[`https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?key=${encodeURIComponent(ttKey)}&tileSize=256`]});
     map.addLayer({id:'ttflow',type:'raster',source:'ttflow',paint:{'raster-opacity':.9}},'route-casing');
   }
-  $('mpTraffic').onclick=()=>{
-    if(!ttKey){ const k=(prompt('ใส่ TomTom API key (ใส่ครั้งเดียวในเครื่องนี้)')||'').trim(); if(!k) return; ttKey=k; ls.set('crv-tt',k); trafficOn=true; }
+  // ปลดล็อกสภาพจราจรด้วยรหัสผ่านของเจ้าของ: TomTom key ถูกเข้ารหัส (AES-GCM + PBKDF2) — ไม่มีรหัสผ่านก็อ่าน key ไม่ได้
+  const TT_ENC={"s": "+3vTqts7f5veSVAO0qKJjA==", "i": "cc5PGCHOO6nVGnyi", "c": "VhzthADWksF0jPzQ43nw1W58PZaxLGs3bMowtEbWkBCfX9xfuT7QIQcdB0Kcs1GB"};
+  async function unlockTraffic(){
+    const pw=(prompt('ใส่รหัสผ่านเพื่อเปิดสภาพจราจร (ใส่ครั้งเดียวในเครื่องนี้)')||'').trim(); if(!pw) return false;
+    $('mpMsg').textContent='กำลังตรวจรหัสผ่าน…';
+    try{ const C=crypto.subtle, te=new TextEncoder(), u=x=>Uint8Array.from(atob(x),ch=>ch.charCodeAt(0));
+      const base=await C.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveKey']);
+      const k=await C.deriveKey({name:'PBKDF2',salt:u(TT_ENC.s),iterations:250000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+      ttKey=new TextDecoder().decode(await C.decrypt({name:'AES-GCM',iv:u(TT_ENC.i)},k,u(TT_ENC.c))); ls.set('crv-tt',ttKey);
+      $('mpMsg').textContent='ปลดล็อกสภาพจราจรแล้ว ✓'; return true;
+    }catch(e){ $('mpMsg').textContent='รหัสผ่านไม่ถูกต้อง — กด 🚦 เพื่อลองใหม่'; return false; } }
+  $('mpTraffic').onclick=async ()=>{
+    if(!ttKey){ if(!(await unlockTraffic())) return; trafficOn=true; }
     else trafficOn=!trafficOn;
     try{localStorage.setItem('crv-traffic',trafficOn?'1':'0')}catch(e){} setTrafficLayer();
     $('mpMsg').textContent= trafficOn&&ttKey ? 'แสดงสภาพจราจร: เขียว=คล่อง เหลือง/ส้ม=หนาแน่น แดง=ติด' : 'ปิดการแสดงสภาพจราจร'; };
