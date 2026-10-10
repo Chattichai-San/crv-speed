@@ -784,7 +784,7 @@ body.mapOn #mp{background:#05080a}
     map.on('dragstart',()=>{ follow=false; $('mpFollow').hidden=false; });
     setTimeout(()=>map.resize(),60);
   }
-  let mkOn=false, centered=false;
+  let mkOn=false, centered=false, navZoom=false;
   function updMap(){
     if(!map) return;
     const P=(fix && anyPos && anyPos.t-fix.t>8000) ? anyPos : (fix||anyPos);
@@ -795,7 +795,8 @@ body.mapOn #mp{background:#05080a}
       mk.setLngLat([ll[1],ll[0]]); if(!mkOn){ mk.addTo(map); mkOn=true; }
       mk.setRotation(hd||0); const a=mk.getElement().querySelector('.carar'); if(a) a.classList.toggle('nohead',hd==null);
       if(follow){ const h=map.getContainer().clientHeight;
-        map.easeTo({center:[ll[1],ll[0]],bearing:(headUp&&hd!=null)?hd:(headUp?map.getBearing():0),pitch:headUp?50:0,
+        let z=map.getZoom(); if(navZoom){ z=17; navZoom=false; map.jumpTo({zoom:17}); } else if(nav&&nav.active){ const v=shown||0; const want=v>90?15.5:v>60?16:v>30?16.5:17; if(Math.abs(z-want)>0.4) z+=Math.sign(want-z)*0.4; }
+        map.easeTo({zoom:z,center:[ll[1],ll[0]],bearing:(headUp&&hd!=null)?hd:(headUp?map.getBearing():0),pitch:headUp?50:0,
           padding:{top:headUp?Math.round(h*0.38):0,bottom:0,left:0,right:0},duration:900,essential:true}); } }
     const src=map.getSource&&map.getSource('trk'); if(src) src.setData(lineGeo());
   }
@@ -811,7 +812,7 @@ body.mapOn #mp{background:#05080a}
     $('mpGo').textContent= watchId!=null ? 'หยุด' : 'เริ่ม'; $('mpGo').classList.toggle('running',watchId!=null);
     $('mpMsg').textContent=$('msg').textContent;
   }
-  $('mpFollow').onclick=()=>{ follow=true; $('mpFollow').hidden=true; updMap(); };
+  $('mpFollow').onclick=()=>{ if(map&&map.getZoom()<14) navZoom=true; follow=true; $('mpFollow').hidden=true; updMap(); };
   $('mpHead').onclick=()=>setHeadUp(!headUp);
   $('mpGo').onclick=()=>{ $('startBtn').click(); updMp(); };
   $('mpRst').onclick=()=>{ $('resetBtn').click(); updMp(); };
@@ -897,7 +898,7 @@ body.mapOn #mp{background:#05080a}
     finally{ routeReq=false; }
   }
   function startNav(){ if(!nav) return; nav.active=true; $('nvPrev').hidden=true; showNav(true);
-    if(watchId==null) start(); follow=true; $('mpFollow').hidden=true;
+    if(watchId==null) start(); follow=true; $('mpFollow').hidden=true; navZoom=true;
     try{ if('speechSynthesis' in window) speechSynthesis.speak(new SpeechSynthesisUtterance('')); }catch(e){}
     say(`เริ่มนำทางไป ${nav.dest.name||'จุดหมาย'} ระยะทาง ${fmtD(nav.total)}`); updMap(); updNav(); }
   $('pvGo').onclick=startNav;
