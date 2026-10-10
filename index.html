@@ -78,16 +78,16 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
 /* แนวนอน (มือถือ): ตัวเลขความเร็วดิจิทัลเต็มจออย่างเดียว */
 @media (orientation:landscape) and (max-height:600px){
   header,.dial,.dstats,.limit,.msg,.controls{display:none!important}
-  #dig,#dig[hidden]{display:flex!important;flex-direction:row;align-items:flex-end;justify-content:center;gap:2vw;height:100%}
+  #dig,#dig[hidden]{display:flex!important;flex-direction:row;align-items:center;justify-content:center;gap:2vw;height:100%}
   main{max-width:none;height:100vh;height:100dvh;justify-content:center;align-items:center;gap:0}
   .dspeed svg{height:88vh;height:88dvh;width:auto;max-width:86vw}
-  .dunit{align-self:flex-end;font-size:6vh;padding-bottom:4vh}
+  .dunit{align-self:flex-end;font-size:6vh;line-height:1;padding-bottom:7vh}
 }
 /* แอปที่ติดตั้งค้างแนวตั้ง: ใช้เซนเซอร์แรงโน้มถ่วงหมุนตัวเลขเอง */
 body.rot header,body.rot .dial,body.rot .dstats,body.rot .limit,body.rot .msg,body.rot .controls{display:none!important}
-body.rot #dig,body.rot #dig[hidden]{display:flex!important;position:fixed;top:50%;left:50%;width:100vh;height:100vw;flex-direction:row;align-items:flex-end;justify-content:center;gap:2vh;transform:translate(-50%,-50%) rotate(var(--r,90deg))}
+body.rot #dig,body.rot #dig[hidden]{display:flex!important;position:fixed;top:50%;left:50%;width:100vh;height:100vw;flex-direction:row;align-items:center;justify-content:center;gap:2vh;transform:translate(-50%,-50%) rotate(var(--r,90deg))}
 body.rot .dspeed svg{height:80vw;width:auto;max-width:84vh}
-body.rot .dunit{font-size:6vw;padding-bottom:6vw}
+body.rot .dunit{align-self:flex-end;font-size:6vw;line-height:1;padding-bottom:11vw}
 @media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
