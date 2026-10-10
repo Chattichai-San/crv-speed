@@ -362,11 +362,11 @@ body.mapOn #mp{background:#05080a}
 #skinDots button[aria-pressed="true"]{border-color:#fff;transform:scale(1.15)}
 
 #ts.wide ~ #skinDots,
-body.mapOn #skinDots{display:flex;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 66px)}
+body.mapOn #skinDots{display:flex;position:absolute;left:10px;top:50%;bottom:auto;transform:translateY(-35%);flex-direction:column;z-index:510;padding:8px 6px}
 body.mapOn:has(#mp.nav) #skinDots,body.mapOn:has(.nvprev:not([hidden])) #skinDots,body.mapOn:has(.nvpick:not([hidden])) #skinDots,body.mapOn:has(.nvpanel:not([hidden])) #skinDots{display:none}
 body.rot #skinDots{display:none!important}
 @media (orientation:landscape) and (max-height:600px){ body.tsOn #skinDots{display:none} }
-@media (display-mode: fullscreen){ body.tsOn #skinDots{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 118px)} body.mapOn #skinDots{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 110px)} }
+@media (display-mode: fullscreen){ body.tsOn #skinDots{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 118px)} }
 @media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
@@ -834,6 +834,7 @@ body.rot #skinDots{display:none!important}
   $('mpHead').onclick=()=>setHeadUp(!headUp);
   $('mpGo').onclick=()=>{ $('startBtn').click(); updMp(); };
   $('mpRst').onclick=()=>{ $('resetBtn').click(); updMp(); };
+  document.querySelector('#mp .mpmap').appendChild($('skinDots'));
   [ $('skinDots'), document.querySelector('#tsDots .dw') ].forEach(box=>{ document.querySelectorAll('#colorSw button').forEach(src=>{ const b=document.createElement('button'); b.type='button';
       b.dataset.c=src.dataset.c; b.setAttribute('aria-label',src.getAttribute('aria-label')||src.dataset.c); b.style.cssText=src.getAttribute('style')||'';
       b.style.background=getComputedStyle(src).backgroundImage!=='none'?getComputedStyle(src).backgroundImage:getComputedStyle(src).backgroundColor;
