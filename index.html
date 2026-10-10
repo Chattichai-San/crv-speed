@@ -326,7 +326,7 @@ body.mapOn #mp{background:#05080a}
 .nvfoot{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 58px);z-index:520;display:flex;align-items:center;justify-content:space-between;gap:8px;
   background:#05080a;color:#3ff6ff;border:1px solid rgba(63,246,255,.35);border-radius:12px;padding:8px 10px;font:700 .95rem var(--display)}
 #nvStop{font:700 .85rem var(--display);background:#2a0f0f;color:#ff8a80;border:1px solid #7a2a2a;border-radius:8px;padding:6px 8px;white-space:nowrap}
-#mp.nav .mpmsg{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 108px)}
+#mp.nav .mpmsg{display:none}
 .nvprev{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 58px);z-index:540;background:#fff;color:#14181c;border-radius:14px;padding:12px;box-shadow:0 4px 16px rgba(0,0,0,.35)}
 .pv1{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .pv1 b{font:700 1.1rem var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -347,6 +347,10 @@ body.mapOn #mp{background:#05080a}
 .carar{width:34px;height:34px;transition:transform .4s}
 .carar svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
 .carar.nohead .arw{display:none} .carar:not(.nohead) .dot{display:none}
+@media (display-mode: fullscreen){ .mpbtns{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 44px)}
+  .nvfoot,.nvpick,.nvprev{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 102px)} .mpmsg{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 102px)}
+  #mp.nav .mpmsg{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 152px)} #mp .maplibregl-ctrl-bottom-right,#mp .maplibregl-ctrl-bottom-left{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 98px)}
+  .controls{padding-bottom:56px} }
 @media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
@@ -633,7 +637,7 @@ body.mapOn #mp{background:#05080a}
     const free=Date.now()>stickyUntil;
     if(free){ $('msg').textContent=''; $('msg').classList.remove('err'); }
     const cur={lat:c.latitude,lon:c.longitude,t:now,acc:acc};
-    anyPos=cur; if(map) updMap(); if(pendDest){ const d=pendDest; pendDest=null; routeTo(d); }
+    anyPos=cur; if(map) updMap(); if(nav&&nav.active&&acc>15) updNav(); if(pendDest){ const d=pendDest; pendDest=null; routeTo(d); }
     let kmh=0;
     if(acc>15){                                                       // ใช้เฉพาะสัญญาณ GPS ที่แม่นพอ
       if(free) $('msg').textContent='สัญญาณ GPS ยังไม่แม่น (ในอาคาร?) — ความเร็วแสดง 0 จนกว่าจะจับดาวเทียมได้';
@@ -904,17 +908,19 @@ body.mapOn #mp{background:#05080a}
     if(nav){ if(!destMk) destMk=new maplibregl.Marker({color:'#e53935'}); destMk.setLngLat([nav.dest.lon,nav.dest.lat]).addTo(map); } else if(destMk && !pvDest) destMk.remove(); }
   function showNav(on){ $('mp').classList.toggle('nav',on); $('nvBan').hidden=!on; $('nvFoot').hidden=!on; if(!on){ nav=null; setRouteLayer(); } }
   function updNav(){
-    if(!nav||!nav.active||!fix) return;
-    const p=onRoute(fix.lat,fix.lon), rem=Math.max(0,nav.total-p.along);
+    if(!nav||!nav.active) return;
+    const P=(fix && anyPos && anyPos.t-fix.t>8000) ? anyPos : (fix||anyPos);
+    if(!P){ $('nvDist').textContent='รอ GPS'; $('nvTxt').textContent='กำลังหาตำแหน่ง…'; $('nvRem').textContent=`ระยะทาง ${fmtD(nav.total)} • ${fmtMin(nav.dur)}`; return; }
+    const p=onRoute(P.lat,P.lon), rem=Math.max(0,nav.total-p.along);
     if(rem<30){ say('ถึงจุดหมายแล้ว'); $('mpMsg').textContent='ถึงจุดหมายแล้ว ✓'; showNav(false); return; }
-    if(p.d>Math.max(50,(fix.acc||10)*2)){ offCnt++; if(offCnt>=3 && Date.now()-lastRoute>12000){ routeTo(nav.dest,true); return; } } else offCnt=0;
+    if(p.d>Math.max(50,(P.acc||10)*2)){ offCnt++; if(offCnt>=3 && Date.now()-lastRoute>12000){ routeTo(nav.dest,true); return; } } else offCnt=0;
     let nx=nav.steps.find(s=>s.at>p.along+8) || nav.steps[nav.steps.length-1];
     const toTurn=Math.max(0,nx.at-p.along), txt=stepText(nx.st), road=nx.st.name||'';
     $('nvDist').textContent=fmtD(toTurn); $('nvTxt').textContent=txt; $('nvRoad').textContent=road;
     const t=nx.st.maneuver.type, mod=nx.st.maneuver.modifier||'straight';
     $('nvArrow').style.transform=`rotate(${t==='arrive'?0:(ANG[mod]??0)}deg)`; $('nvArrow').classList.toggle('flag',t==='arrive');
     const eta=nav.dur*(rem/nav.total), at=new Date(Date.now()+eta*1000);
-    $('nvRem').textContent=`เหลือ ${fmtD(rem)} • ${fmtMin(eta)} • ถึง ${String(at.getHours()).padStart(2,'0')}:${String(at.getMinutes()).padStart(2,'0')}`;
+    $('nvRem').textContent=`เหลือ ${fmtD(rem)} • ${fmtMin(eta)} • ถึง ${String(at.getHours()).padStart(2,'0')}:${String(at.getMinutes()).padStart(2,'0')}`+(P===fix?'':' • GPS ยังไม่แม่น');
     if(toTurn<=450 && toTurn>150 && nx.said<1 && nx.at-0>600){ nx.said=1; say(`อีก ${fmtD(toTurn)} ${txt}${road?' เข้าสู่ '+road:''}`); }
     if(toTurn<=120 && nx.said<2){ nx.said=2; say(`${txt}${road?' เข้าสู่ '+road:''}`); }
   }
