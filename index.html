@@ -283,6 +283,9 @@ body.mapOn #mp{background:#05080a}
 .mpbtns #mpGo.running{background:#fff;color:#c62828;border-color:#c62828}
 #mpFollow{position:absolute;right:10px;top:56px;z-index:500;padding:8px 12px}
 .mptop{position:absolute;right:10px;top:10px;z-index:500;display:flex;gap:6px}
+#mpTraffic{font:1.1rem/1 var(--body);padding:8px 10px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+#mpTraffic.on{background:#1e6bff;border-color:#1e6bff}
+.tjam{color:#ff6d5a;font-weight:700} .tok{color:#4be38a;font-weight:700}
 #mpSnap,#mpHead{font:700 .85rem var(--display);padding:8px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.94);color:#5c6670;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 #mpSnap.on,#mpHead.on{background:#1e6bff;color:#fff;border-color:#1e6bff}
 #mp .maplibregl-ctrl-bottom-right,#mp .maplibregl-ctrl-bottom-left{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 54px)}
@@ -332,16 +335,35 @@ body.mapOn #mp{background:#05080a}
   background:#05080a;color:#3ff6ff;border:1px solid rgba(63,246,255,.35);border-radius:12px;padding:8px 10px;font:700 .95rem var(--display)}
 #nvStop{font:700 .85rem var(--display);background:#2a0f0f;color:#ff8a80;border:1px solid #7a2a2a;border-radius:8px;padding:6px 8px;white-space:nowrap}
 #mp.nav .mpmsg{display:none}
-.nvprev{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 58px);z-index:540;background:#fff;color:#14181c;border-radius:14px;padding:12px;box-shadow:0 4px 16px rgba(0,0,0,.35)}
-.pv1{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.pv1 b{font:700 1.1rem var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#pvX{background:#eef1f4;color:#14181c;font-size:1rem;border:0;border-radius:8px;padding:6px 10px}
-.pv2{font:600 .95rem var(--body);color:#3a434c;margin:4px 0 10px}
-.pv2 em{font-style:normal;color:#0a8f3c;font-weight:700}
-.pv3{display:grid;grid-template-columns:2fr 1fr;gap:8px}
-#pvGo{font:700 1.15rem var(--display);background:#1e6bff;color:#fff;border:0;border-radius:12px;padding:13px}
-#pvGo:disabled{background:#9fbdf5}
-#pvFav{font:700 .95rem var(--display);background:#fff8e1;border:1px solid #f1d27a;border-radius:12px;color:#14181c}
+/* หน้าวางแผนเส้นทาง (เต็มจอแผนที่) */
+body.mapOn #mp.plan{grid-template-rows:1fr!important;grid-template-columns:1fr!important}
+#mp.plan .mpspd,#mp.plan .mpbtns,#mp.plan .mptop,#mp.plan #mpSearchBtn,#mp.plan #mpHistBtn,#mp.plan #mpFollow,#mp.plan .mpmsg,#mp.plan #skinDots,#mp.plan .maplibregl-ctrl-top-left{display:none!important}
+.plhead{position:absolute;inset:0 0 auto 0;z-index:620;background:#202326;padding:max(10px,env(safe-area-inset-top)) 12px 12px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.plrow{display:flex;align-items:center;gap:8px}
+.plback{flex:none;width:38px;height:38px;border:0;background:none;color:#e9edf0;font:400 2.2rem/1 var(--body);padding:0 0 6px}
+.plbox{flex:1;min-width:0;background:#2e3236;border-radius:14px;padding:4px 14px}
+.plft{display:flex;align-items:center;gap:12px;padding:10px 0;font:600 1.05rem var(--body);color:#eef2f4;white-space:nowrap;overflow:hidden}
+.plft span{overflow:hidden;text-overflow:ellipsis}
+.plft+.plft{border-top:1px solid #3d4246}
+.pldst{cursor:pointer}
+.plft i{flex:none;width:14px;height:14px;border-radius:50%}
+.plft i.dr{background:#ff4b2b} .plft i.dg{background:#3bff2e}
+.plswap{flex:none;width:40px;height:40px;border:0;border-radius:10px;background:none;color:#e9edf0;font:700 1.6rem/1 var(--body)}
+.plmodes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.plmodes button{height:44px;border-radius:10px;border:0;background:#33373b;display:flex;align-items:center;justify-content:center}
+.plmodes svg{width:28px;height:28px;fill:none;stroke:#cfd5da;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.plmodes button.on{background:#2ef2f0} .plmodes button.on svg{stroke:#0b1a1c;stroke-width:2.2}
+.plcard{position:absolute;left:12px;right:12px;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 4px);z-index:620;background:#1d2023;border-radius:18px;padding:14px 14px 16px;box-shadow:0 -2px 18px rgba(0,0,0,.35);color:#e9edf0;--seg:#3ff6ff;--segoff:rgba(63,246,255,.07)}
+@media (display-mode: fullscreen){ .plcard{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 48px)} }
+.plnums{display:flex;align-items:flex-end;justify-content:center;gap:16px}
+.plnums .seg svg{height:44px;width:auto;display:block;filter:drop-shadow(0 0 5px rgba(63,246,255,.55))}
+.plnums small{font:700 1.2rem var(--display);color:#3ff6ff;margin-left:-12px;padding-bottom:2px}
+.plcard .pv2{text-align:center;margin:8px 0 12px;font:600 1rem var(--body);color:#b9c2c9}
+.plcard .pv2 b{color:#fff;font:700 1.25rem var(--display);margin:0 4px}
+.plcard .pv3{display:grid;grid-template-columns:1fr 56px;gap:10px}
+#pvGo{font:800 1.4rem var(--body);background:#2ef2f0;color:#06191a;border:0;border-radius:30px;padding:14px}
+#pvGo:disabled{background:#3a5c5e;color:#7fa3a5}
+#pvFav{background:#2e3236;border:0;border-radius:30px;font-size:1.3rem}
 .nvpick{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 58px);z-index:530;display:flex;align-items:center;gap:6px;background:#fff;color:#14181c;border-radius:12px;padding:8px;box-shadow:0 3px 12px rgba(0,0,0,.3);font:600 .9rem var(--body)}
 .nvpick>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #nvPickGo{font:700 .9rem var(--display);background:#1e6bff;color:#fff;border:0;border-radius:8px;padding:8px 10px;white-space:nowrap}
@@ -448,7 +470,7 @@ body.rot #skinDots{display:none!important}
   </div>
   <div class="mpmap"><div id="mapBox"></div>
     <button type="button" id="mpFollow" hidden>◎ ตามรถ</button>
-    <div class="mptop"><button type="button" id="mpHead">ทิศ: ตามรถ</button><button type="button" id="mpSnap">เกาะถนน: เปิด</button></div>
+    <div class="mptop"><button type="button" id="mpHead">ทิศ: ตามรถ</button><button type="button" id="mpSnap">เกาะถนน: เปิด</button><button type="button" id="mpTraffic" aria-label="แสดงสภาพจราจร">🚦</button></div>
     <div class="mpbtns"><button type="button" id="mpGo">เริ่ม</button><button type="button" id="mpRst">รีเซ็ต</button><button type="button" id="mpSkin">◀ หน้าปัด</button></div>
     <div class="mpmsg" id="mpMsg"></div>
     <button type="button" id="mpSearchBtn">🔍 ไปที่ไหน</button>
@@ -469,9 +491,17 @@ body.rot #skinDots{display:none!important}
     </div>
     <div class="nvban" id="nvBan" hidden><svg id="nvArrow" viewBox="0 0 40 40"><path class="ar" d="M20 4 L32 18 H24 V36 H16 V18 H8Z"/><path class="fl" d="M12 36 V6 H30 L25 12 L30 18 H14"/></svg>
       <div class="nvt"><b id="nvDist">–</b><span id="nvTxt"></span><small id="nvRoad"></small></div><button type="button" id="nvVoice" aria-label="เสียงนำทาง">🔊</button></div>
-    <div class="nvprev" id="nvPrev" hidden><div class="pv1"><b id="pvName"></b><button type="button" id="pvX" aria-label="ปิด">✕</button></div>
+    <div class="plhead" id="plHead" hidden>
+      <div class="plrow"><button type="button" id="pvX" class="plback" aria-label="กลับ">‹</button>
+        <div class="plbox"><div class="plft"><i class="dr"></i><span id="plFrom">ตำแหน่งของฉัน</span></div><div class="plft pldst" id="plTo"><i class="dg"></i><span id="pvName">จุดหมาย</span></div></div>
+        <button type="button" id="plSwap" class="plswap" aria-label="สลับต้นทางปลายทาง">⇅</button></div>
+      <div class="plmodes"><button type="button" data-m="car" class="on" aria-label="รถยนต์"><svg viewBox="0 0 24 24"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11"/><rect x="3" y="11" width="18" height="6" rx="2"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/></svg></button><button type="button" data-m="bike" aria-label="จักรยาน"><svg viewBox="0 0 24 24"><circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-7h5l3 7M10 9l2 7h-6M14 6h3"/></svg></button><button type="button" data-m="foot" aria-label="เดิน"><svg viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8"/><path d="M10 21l2.2-6.5L15 17v4M8 12l2.5-4.5 3 .5 2 3 2.5 1M12.2 14.5 13.5 8"/></svg></button></div>
+    </div>
+    <div class="plcard" id="nvPrev" hidden>
+      <div class="plnums"><span class="seg" id="plTime"></span><span class="seg" id="plDist"></span><small>km</small></div>
       <div class="pv2" id="pvInfo">กำลังหาเส้นทาง…</div>
-      <div class="pv3"><button type="button" id="pvGo" disabled>▶ นำทาง</button><button type="button" id="pvFav">⭐ บันทึก</button></div></div>
+      <div class="pv3"><button type="button" id="pvGo" disabled>เริ่ม</button><button type="button" id="pvFav" aria-label="บันทึกเป็นสถานที่ใช้บ่อย">⭐</button></div>
+    </div>
     <div class="nvfoot" id="nvFoot" hidden><span id="nvRem"></span><button type="button" id="nvStop">✕ เลิกนำทาง</button></div>
     <div class="nvpick" id="nvPick" hidden><span>📍 <span id="nvPickTxt"></span></span><button type="button" id="nvPickFav" aria-label="บันทึกเป็นสถานที่ใช้บ่อย">⭐</button><button type="button" id="nvPickGo">เลือกจุดนี้</button><button type="button" id="nvPickNo" aria-label="ยกเลิก">✕</button></div>
   </div>
@@ -892,8 +922,14 @@ body.rot #skinDots{display:none!important}
       const px=ax+t*dx, py=ay+t*dy, d=Math.hypot(px,py); if(d<best.d) best={d, along:nav.cum[i]+t*(nav.cum[i+1]-nav.cum[i])}; }
     return best; }
   // เลือกปลายทาง → แสดงการ์ดเส้นทาง (ระยะ/เวลา) + ปุ่ม "นำทาง"
-  function selectDest(dest){ if(nav&&nav.active) showNav(false); nav=null; $('nvPick').hidden=true;
-    $('pvName').textContent=dest.name||'จุดหมาย'; $('pvGo').disabled=true; $('nvPrev').hidden=false; $('pvGo').dataset.ok='';
+  let plMode='car', plSwap=false;
+  try{ plMode=localStorage.getItem('crv-plmode')||'car'; }catch(e){}
+  const ROUTERS={car:'https://router.project-osrm.org/route/v1/driving/',bike:'https://routing.openstreetmap.de/routed-bike/route/v1/driving/',foot:'https://routing.openstreetmap.de/routed-foot/route/v1/driving/'};
+  function planOpen(on){ $('mp').classList.toggle('plan',on); $('plHead').hidden=!on; $('nvPrev').hidden=!on; if(map) setTimeout(()=>map.resize(),30); }
+  function setPlanMode(m){ plMode=m; try{localStorage.setItem('crv-plmode',m)}catch(e){} document.querySelectorAll('.plmodes button').forEach(b=>b.classList.toggle('on',b.dataset.m===m)); }
+  function selectDest(dest){ if(nav&&nav.active) showNav(false); nav=null; $('nvPick').hidden=true; plSwap=false; setPlanMode(plMode);
+    $('pvName').textContent=dest.name||'จุดหมาย'; $('plFrom').textContent='ตำแหน่งของฉัน'; $('pvGo').disabled=true; planOpen(true); $('pvGo').dataset.ok='';
+    $('plTime').innerHTML=''; $('plDist').innerHTML='';
     pvDest=dest; if(destMk) destMk.remove(); if(map&&window.maplibregl){ destMk=new maplibregl.Marker({color:'#e53935'}).setLngLat([dest.lon,dest.lat]).addTo(map); }
     routeTo(dest); }
   let pvDest=null;
@@ -904,33 +940,49 @@ body.rot #skinDots{display:none!important}
     if(routeReq) return; routeReq=true; lastRoute=Date.now();
     if(!quiet) $('pvInfo').textContent='กำลังหาเส้นทาง…';
     try{
-      const r=await fetch(`${OSRT}${here.lon.toFixed(6)},${here.lat.toFixed(6)};${dest.lon.toFixed(6)},${dest.lat.toFixed(6)}?overview=full&geometries=geojson&steps=true`);
-      const j=await r.json(); if(j.code!=='Ok'||!j.routes||!j.routes.length) throw 0;
-      const rt=j.routes[0], coords=rt.geometry.coordinates, cum=[0];
-      for(let i=1;i<coords.length;i++) cum.push(cum[i-1]+hav({lat:coords[i-1][1],lon:coords[i-1][0]},{lat:coords[i][1],lon:coords[i][0]}));
-      const steps=[]; let acc=0; rt.legs[0].steps.forEach(st=>{ steps.push({st,at:acc*(cum[cum.length-1]/(rt.distance||1)),said:0}); acc+=st.distance; });
+      const A=(plSwap&&!quiet)?dest:here, B=(plSwap&&!quiet)?here:dest, base=(nav&&nav.active)||quiet ? (ROUTERS[plMode]||OSRT) : (ROUTERS[plMode]||OSRT);
+      let rt=null, coords, steps=[], tinfo=null;
+      if(plMode==='car' && ttKey){ try{ rt=await ttRoute(A,B); }catch(e){ if(e&&e.message==='ttkey'){ ttKey=''; ls.del('crv-tt'); setTrafficLayer(); $('mpMsg').textContent='TomTom key ใช้ไม่ได้ — กด 🚦 เพื่อใส่ใหม่'; } rt=null; } }
+      let cum=[0];
+      if(rt){ coords=rt.coords; for(let i=1;i<coords.length;i++) cum.push(cum[i-1]+hav({lat:coords[i-1][1],lon:coords[i-1][0]},{lat:coords[i][1],lon:coords[i][0]}));
+        const k=cum[cum.length-1]/(rt.distance||cum[cum.length-1]||1); steps=rt.steps.map(x=>({st:x.st,at:x.at*k,said:0})); tinfo=rt.traffic; }
+      else{
+        const r=await fetch(`${base}${A.lon.toFixed(6)},${A.lat.toFixed(6)};${B.lon.toFixed(6)},${B.lat.toFixed(6)}?overview=full&geometries=geojson&steps=true`);
+        const j=await r.json(); if(j.code!=='Ok'||!j.routes||!j.routes.length) throw 0;
+        const o=j.routes[0]; coords=o.geometry.coordinates;
+        for(let i=1;i<coords.length;i++) cum.push(cum[i-1]+hav({lat:coords[i-1][1],lon:coords[i-1][0]},{lat:coords[i][1],lon:coords[i][0]}));
+        let acc=0; o.legs[0].steps.forEach(st=>{ steps.push({st,at:acc*(cum[cum.length-1]/(o.distance||1)),said:0}); acc+=st.distance; });
+        rt={duration:o.duration}; }
       const wasActive=!!(nav&&nav.active);
-      nav={dest,coords,cum,total:cum[cum.length-1],dur:rt.duration,steps,active:wasActive||!!quiet};
+      nav={dest,coords,cum,total:cum[cum.length-1],dur:rt.duration,steps,active:wasActive||!!quiet,traffic:tinfo};
       offCnt=0; setRouteLayer();
-      if(nav.active){ say('คำนวณเส้นทางใหม่'); updNav(); return; }
+      if(nav.active){ if(quiet!==2) say('คำนวณเส้นทางใหม่'); updNav(); return; }
       const at=new Date(Date.now()+rt.duration*1000);
-      $('pvInfo').innerHTML=`<em>${fmtMin(rt.duration)}</em> • ${fmtD(nav.total)} • ถึงประมาณ ${String(at.getHours()).padStart(2,'0')}:${String(at.getMinutes()).padStart(2,'0')}`+(fix?'':' <small>(ตำแหน่งยังไม่แม่น)</small>');
-      $('pvGo').disabled=false;
+      const sec=Math.round(rt.duration), hh=Math.floor(sec/3600), mm=Math.floor(sec/60)%60, ss=sec%60;
+      $('plTime').innerHTML=segSVG(`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`);
+      $('plDist').innerHTML=segSVG((nav.total/1000).toFixed(nav.total>=100000?0:2));
+      const tx = tinfo ? (tinfo.delay>=60 ? ` · <span class="tjam">รถติด +${Math.round(tinfo.delay/60)} นาที</span>` : ' · <span class="tok">การจราจรคล่องตัว</span>') : ' · เส้นทางที่เร็วที่สุด';
+      $('pvInfo').innerHTML=`เวลาถึง <b>${String(at.getHours()).padStart(2,'0')}:${String(at.getMinutes()).padStart(2,'0')}</b>`+tx+(tinfo?'<br><small>คิดสภาพจราจรตอนนี้แล้ว (TomTom)</small>':'')+(fix?'':' · <small>ตำแหน่งยังไม่แม่น</small>');
+      $('pvGo').disabled=plSwap; $('pvGo').textContent= plSwap ? 'ดูเส้นทางเท่านั้น' : 'เริ่ม';
       follow=false; $('mpFollow').hidden=false;
       const bb=coords.reduce((b,c)=>[[Math.min(b[0][0],c[0]),Math.min(b[0][1],c[1])],[Math.max(b[1][0],c[0]),Math.max(b[1][1],c[1])]],[[180,90],[-180,-90]]);
-      if(map) (map.setPadding({top:0,bottom:0,left:0,right:0}),map).fitBounds(bb,{padding:{top:60,bottom:200,left:40,right:40},bearing:0,pitch:0,duration:800});
+      if(map) setTimeout(()=>{ (map.setPadding({top:0,bottom:0,left:0,right:0}),map).fitBounds(bb,{padding:{top:(($('plHead').offsetHeight)||60)+30,bottom:(($('nvPrev').offsetHeight)||200)+30,left:40,right:40},bearing:0,pitch:0,duration:800}); },60);
     }catch(e){ $('pvInfo').textContent='หาเส้นทางไม่ได้ — ตรวจสอบอินเทอร์เน็ต แล้วกดเลือกจุดหมายอีกครั้ง'; }
     finally{ routeReq=false; }
   }
-  function startNav(){ if(!nav) return; nav.active=true; $('nvPrev').hidden=true; showNav(true);
+  function startNav(){ if(!nav||plSwap) return; nav.active=true; planOpen(false); showNav(true);
     if(watchId==null) start(); follow=true; $('mpFollow').hidden=true; navZoom=true;
     try{ if('speechSynthesis' in window) speechSynthesis.speak(new SpeechSynthesisUtterance('')); }catch(e){}
     say(`เริ่มนำทางไป ${nav.dest.name||'จุดหมาย'} ระยะทาง ${fmtD(nav.total)}`); updMap(); updNav(); }
   $('pvGo').onclick=startNav;
-  $('pvX').onclick=()=>{ $('nvPrev').hidden=true; nav=null; pvDest=null; setRouteLayer(); follow=true; $('mpFollow').hidden=true; updMap(); };
+  document.querySelectorAll('.plmodes button').forEach(b=>b.onclick=()=>{ setPlanMode(b.dataset.m); if(pvDest){ nav=null; $('pvGo').disabled=true; routeTo(pvDest); } });
+  $('plSwap').onclick=()=>{ if(!pvDest) return; plSwap=!plSwap; const a=$('plFrom').textContent; $('plFrom').textContent=$('pvName').textContent; $('pvName').textContent=a; nav=null; $('pvGo').disabled=true; routeTo(pvDest); };
+  $('plTo').onclick=()=>{ openSearch(); };
+  $('pvX').onclick=()=>{ planOpen(false); nav=null; pvDest=null; setRouteLayer(); follow=true; $('mpFollow').hidden=true; updMap(); };
   $('pvFav').onclick=()=>{ if(pvDest) addFav(pvDest.lat,pvDest.lon,pvDest.name&&!/^พิกัด|^จุดที่ปัก/.test(pvDest.name)?pvDest.name:''); };
   function setRouteLayer(){ if(!map||!map.getSource) return; const s=map.getSource('route'); if(!s) return;
     s.setData({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:nav?nav.coords:[]}});
+    const sj=map.getSource('routejam'); if(sj) sj.setData({type:'FeatureCollection',features:(nav&&nav.traffic)?nav.traffic.jams.map(j=>({type:'Feature',properties:{m:j.m},geometry:{type:'LineString',coordinates:nav.coords.slice(j.a,j.b+1)}})):[]});
     if(nav){ if(!destMk) destMk=new maplibregl.Marker({color:'#e53935'}); destMk.setLngLat([nav.dest.lon,nav.dest.lat]).addTo(map); } else if(destMk && !pvDest) destMk.remove(); }
   function showNav(on){ $('mp').classList.toggle('nav',on); $('nvBan').hidden=!on; $('nvFoot').hidden=!on; if(!on){ nav=null; setRouteLayer(); } }
   function updNav(){
@@ -997,6 +1049,9 @@ body.rot #skinDots{display:none!important}
     map.addSource('route',{type:'geojson',data:{type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[]}}});
     map.addLayer({id:'route-casing',type:'line',source:'route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#0b3f91','line-width':12}});
     map.addLayer({id:'route',type:'line',source:'route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#2f9bff','line-width':7}});
+    map.addSource('routejam',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+    map.addLayer({id:'routejam',type:'line',source:'routejam',layout:{'line-cap':'round','line-join':'round'},paint:{'line-width':7,'line-color':['match',['get','m'],1,'#ffb300',2,'#ff6d00',3,'#e53935',4,'#7a0000','#ff9800']}});
+    setTrafficLayer();
     if(nav) setRouteLayer();
   }
 
@@ -1031,6 +1086,46 @@ body.rot #skinDots{display:none!important}
   $('hsClose').onclick=()=>{ $('hsPanel').hidden=true; };
   $('hsBack').onclick=()=>openHist();
   $('hsX').onclick=()=>{ $('hsCard').hidden=true; clearHist(); follow=true; $('mpFollow').hidden=true; updMap(); };
+
+  // ---- สภาพจราจร (TomTom) — key เก็บในเครื่องนี้เท่านั้น ไม่อยู่ในโค้ด ----
+  let ttKey=ls.get('crv-tt',''), trafficOn=true;
+  try{ trafficOn=localStorage.getItem('crv-traffic')!=='0'; }catch(e){}
+  const TTMAN={TURN_LEFT:['turn','left'],TURN_RIGHT:['turn','right'],BEAR_LEFT:['turn','slight left'],BEAR_RIGHT:['turn','slight right'],
+    KEEP_LEFT:['fork','slight left'],KEEP_RIGHT:['fork','slight right'],SHARP_LEFT:['turn','sharp left'],SHARP_RIGHT:['turn','sharp right'],
+    MAKE_UTURN:['turn','uturn'],TRY_MAKE_UTURN:['turn','uturn'],STRAIGHT:['continue','straight'],FOLLOW:['continue','straight'],
+    DEPART:['depart','straight'],ARRIVE:['arrive',''],ARRIVE_LEFT:['arrive',''],ARRIVE_RIGHT:['arrive',''],
+    ENTER_MOTORWAY:['on ramp','slight left'],ENTER_HIGHWAY:['on ramp','slight left'],ENTER_FREEWAY:['on ramp','slight left'],
+    TAKE_EXIT:['off ramp','slight left'],MOTORWAY_EXIT_LEFT:['off ramp','slight left'],MOTORWAY_EXIT_RIGHT:['off ramp','slight right']};
+  async function ttRoute(A,B){
+    const u=`https://api.tomtom.com/routing/1/calculateRoute/${A.lat.toFixed(6)},${A.lon.toFixed(6)}:${B.lat.toFixed(6)},${B.lon.toFixed(6)}/json`+
+      `?key=${encodeURIComponent(ttKey)}&traffic=true&routeType=fastest&travelMode=car&instructionsType=coded&sectionType=traffic&computeTravelTimeFor=all`;
+    const r=await fetch(u); if(r.status===401||r.status===403) throw new Error('ttkey'); if(!r.ok) throw new Error('tt');
+    const j=await r.json(), rt=j.routes&&j.routes[0]; if(!rt) throw new Error('tt');
+    const coords=[]; rt.legs.forEach(l=>l.points.forEach(p=>coords.push([p.longitude,p.latitude])));
+    const steps=((rt.guidance&&rt.guidance.instructions)||[]).filter(i=>!/^WAYPOINT/.test(i.maneuver||'')).map(i=>{
+      let t=TTMAN[i.maneuver]; if(!t && /ROUNDABOUT/.test(i.maneuver||'')) t=['roundabout','straight']; if(!t) t=['continue','straight'];
+      return {at:i.routeOffsetInMeters||0, st:{name:i.street||'',distance:0,maneuver:{type:t[0],modifier:t[1],exit:i.roundaboutExitNumber}}}; });
+    const sm=rt.summary, jams=(rt.sections||[]).filter(x=>x.sectionType==='TRAFFIC').map(x=>({a:x.startPointIndex,b:x.endPointIndex,m:x.magnitudeOfDelay||0}));
+    return {coords,steps,distance:sm.lengthInMeters,duration:sm.travelTimeInSeconds,
+      traffic:{delay:sm.trafficDelayInSeconds||0,normal:sm.noTrafficTravelTimeInSeconds||sm.travelTimeInSeconds,jams}};
+  }
+  function setTrafficLayer(){
+    $('mpTraffic').classList.toggle('on',!!(trafficOn&&ttKey));
+    if(!map||!map.getSource||!map.isStyleLoaded||!map.getLayer('route-casing')) return;
+    const want=trafficOn&&ttKey;
+    if(map.getLayer('ttflow')) map.removeLayer('ttflow'); if(map.getSource('ttflow')) map.removeSource('ttflow');
+    if(!want) return;
+    map.addSource('ttflow',{type:'raster',tileSize:256,maxzoom:18,attribution:'Traffic © TomTom',
+      tiles:[`https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?key=${encodeURIComponent(ttKey)}&tileSize=256`]});
+    map.addLayer({id:'ttflow',type:'raster',source:'ttflow',paint:{'raster-opacity':.9}},'route-casing');
+  }
+  $('mpTraffic').onclick=()=>{
+    if(!ttKey){ const k=(prompt('ใส่ TomTom API key (ใส่ครั้งเดียวในเครื่องนี้)')||'').trim(); if(!k) return; ttKey=k; ls.set('crv-tt',k); trafficOn=true; }
+    else trafficOn=!trafficOn;
+    try{localStorage.setItem('crv-traffic',trafficOn?'1':'0')}catch(e){} setTrafficLayer();
+    $('mpMsg').textContent= trafficOn&&ttKey ? 'แสดงสภาพจราจร: เขียว=คล่อง เหลือง/ส้ม=หนาแน่น แดง=ติด' : 'ปิดการแสดงสภาพจราจร'; };
+  // ระหว่างนำทางด้วยรถยนต์: อัปเดตเส้นทาง/เวลาตามจราจรทุก 5 นาที (เงียบ)
+  setInterval(()=>{ if(nav&&nav.active&&plMode==='car'&&ttKey&&!routeReq) routeTo(nav.dest,2); },300000);
   const SKIN_NAME={cyan:'สีฟ้า',green:'สีเขียว',red:'สีแดง',yellow:'สีเหลือง',lcd:'จอ LCD เครื่องมือสำรวจ',paper:'จอขาว เครื่องมือสำรวจ',map:'ความเร็วคู่แผนที่',ts:'จอสัมผัส ตัวควบคุมงานสำรวจ'};
   let toastT=null;
   function showSkin(){const t=$('skinToast'); t.textContent=SKIN_NAME[document.body.dataset.c]||''; t.style.setProperty('--tr',(rot||0)+'deg');
