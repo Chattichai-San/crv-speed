@@ -281,6 +281,35 @@ body.mapOn #mp{background:#05080a}
 #mpSnap,#mpHead{font:700 .85rem var(--display);padding:8px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.94);color:#5c6670;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 #mpSnap.on,#mpHead.on{background:#1e6bff;color:#fff;border-color:#1e6bff}
 #mp .maplibregl-ctrl-bottom-right,#mp .maplibregl-ctrl-bottom-left{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 54px)}
+#mpSearchBtn{position:absolute;left:58px;top:10px;z-index:500;font:700 .95rem var(--display);padding:9px 14px;border-radius:22px;border:1px solid rgba(0,0,0,.15);background:#fff;color:#14181c;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#mp.nav #mpSearchBtn{display:none}
+.nvpanel{position:absolute;inset:0 0 auto 0;z-index:700;background:#fff;color:#14181c;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3);max-height:75%;overflow:auto;border-radius:0 0 14px 14px}
+.nvrow{display:flex;gap:6px}
+.nvrow input{flex:1;min-width:0;background:#fff;color:#14181c;font:500 1rem var(--body);padding:10px 12px;border:2px solid #1e6bff;border-radius:10px;outline:none}
+.nvrow button{font:700 .95rem var(--display);padding:0 12px;border-radius:10px;border:0;background:#1e6bff;color:#fff}
+.nvrow #nvClose{background:#eef1f4;color:#14181c}
+#nvRes{list-style:none;margin:8px 0 0;padding:0}
+#nvRes li{padding:10px 6px;border-bottom:1px solid #e7ebef;display:flex;flex-direction:column;gap:2px;cursor:pointer}
+#nvRes li b{font:600 1rem var(--body)} #nvRes li small{font:400 .8rem var(--body);color:#5c6670} #nvRes li.muted{color:#5c6670;cursor:default}
+.nvhint{margin:8px 2px 0;font:400 .78rem var(--body);color:#7a848d}
+.nvban{position:absolute;inset:0 0 auto 0;z-index:600;display:flex;align-items:center;gap:12px;padding:10px 12px;background:#05080a;border-bottom:2px solid rgba(63,246,255,.35);color:#3ff6ff}
+#nvArrow{width:52px;height:52px;flex:none;transition:transform .3s}
+#nvArrow .ar{fill:#3ff6ff;filter:drop-shadow(0 0 6px rgba(63,246,255,.7))} #nvArrow .fl{display:none;fill:none;stroke:#3ff6ff;stroke-width:3}
+#nvArrow.flag .ar{display:none} #nvArrow.flag .fl{display:block}
+.nvt{display:flex;flex-direction:column;min-width:0;flex:1}
+.nvt b{font:700 1.7rem var(--display);text-shadow:0 0 8px rgba(63,246,255,.6);line-height:1.05}
+.nvt span{font:700 1.05rem var(--body);color:#e8fdff}
+.nvt small{font:400 .85rem var(--body);color:#8fd7dc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nvVoice{font-size:1.3rem;background:#11181d;border:1px solid #264048;border-radius:10px;padding:6px 8px}
+#mp.nav .mptop{top:86px} #mp.nav #mpFollow{top:132px} #mp.nav .maplibregl-ctrl-top-left{top:76px}
+.nvfoot{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 58px);z-index:520;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:#05080a;color:#3ff6ff;border:1px solid rgba(63,246,255,.35);border-radius:12px;padding:8px 10px;font:700 .95rem var(--display)}
+#nvStop{font:700 .85rem var(--display);background:#2a0f0f;color:#ff8a80;border:1px solid #7a2a2a;border-radius:8px;padding:6px 8px;white-space:nowrap}
+#mp.nav .mpmsg{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 108px)}
+.nvpick{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 58px);z-index:530;display:flex;align-items:center;gap:6px;background:#fff;color:#14181c;border-radius:12px;padding:8px;box-shadow:0 3px 12px rgba(0,0,0,.3);font:600 .9rem var(--body)}
+.nvpick>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nvPickGo{font:700 .9rem var(--display);background:#1e6bff;color:#fff;border:0;border-radius:8px;padding:8px 10px;white-space:nowrap}
+#nvPickNo{background:#eef1f4;border:0;border-radius:8px;padding:8px 10px}
 .mpmsg{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 58px);z-index:500;font:600 .85rem var(--body);color:#14181c;background:rgba(255,255,255,.88);border-radius:8px;padding:4px 8px;text-align:center}
 .mpmsg:empty{display:none}
 .carmk{background:none;border:0}
@@ -371,6 +400,16 @@ body.mapOn #mp{background:#05080a}
     <div class="mptop"><button type="button" id="mpHead">ทิศ: ตามรถ</button><button type="button" id="mpSnap">เกาะถนน: เปิด</button></div>
     <div class="mpbtns"><button type="button" id="mpGo">เริ่ม</button><button type="button" id="mpRst">รีเซ็ต</button><button type="button" id="mpSkin">หน้ากาก ▸</button></div>
     <div class="mpmsg" id="mpMsg"></div>
+    <button type="button" id="mpSearchBtn">🔍 ไปที่ไหน</button>
+    <div class="nvpanel" id="nvSearch" hidden>
+      <div class="nvrow"><input id="nvQ" type="search" enterkeyhint="search" placeholder="ชื่อสถานที่ หรือพิกัด เช่น 16.44, 102.83" autocomplete="off"><button type="button" id="nvGo">ค้นหา</button><button type="button" id="nvClose" aria-label="ปิด">✕</button></div>
+      <ul id="nvRes"></ul>
+      <p class="nvhint">หรือกดค้างบนแผนที่เพื่อปักหมุดปลายทาง • ค้นหาโดย Nominatim/OpenStreetMap</p>
+    </div>
+    <div class="nvban" id="nvBan" hidden><svg id="nvArrow" viewBox="0 0 40 40"><path class="ar" d="M20 4 L32 18 H24 V36 H16 V18 H8Z"/><path class="fl" d="M12 36 V6 H30 L25 12 L30 18 H14"/></svg>
+      <div class="nvt"><b id="nvDist">–</b><span id="nvTxt"></span><small id="nvRoad"></small></div><button type="button" id="nvVoice" aria-label="เสียงนำทาง">🔊</button></div>
+    <div class="nvfoot" id="nvFoot" hidden><span id="nvRem"></span><button type="button" id="nvStop">✕ เลิกนำทาง</button></div>
+    <div class="nvpick" id="nvPick" hidden><span>📍 <span id="nvPickTxt"></span></span><button type="button" id="nvPickGo">นำทางไปที่นี่</button><button type="button" id="nvPickNo" aria-label="ยกเลิก">✕</button></div>
   </div>
 </div>
 <div id="ts" hidden>
@@ -572,7 +611,7 @@ body.mapOn #mp{background:#05080a}
     else if(last && kmh>=5 && hav(last,cur)>8) head=brg(last,cur);
     fix=cur;
     if(kmh>0){ const lp=trackPts[trackPts.length-1]; if(!lp || hav(lp,cur)>5) trackPts.push({lat:cur.lat,lon:cur.lon,t:now,acc:acc,s:null}); if(trackPts.length>8000) trackPts.shift(); }
-    if(map){ updMap(); if(kmh>0) snapRoad(); }
+    if(map){ updMap(); if(kmh>0) snapRoad(); if(nav) updNav(); }
     lastKmh=kmh; last=cur;
     render(kmh);
   }
@@ -679,6 +718,7 @@ body.mapOn #mp{background:#05080a}
     }catch(e){ map=null; $('mpMsg').textContent='เครื่องนี้แสดงแผนที่ 3 มิติไม่ได้ (ไม่รองรับ WebGL)'; return; }
     map.addControl(new maplibregl.NavigationControl({showCompass:true,visualizePitch:true}),'top-left');
     map.on('load',()=>{
+      hookMapNav();
       map.addSource('trk',{type:'geojson',data:lineGeo()});
       map.addLayer({id:'trk-casing',type:'line',source:'trk',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#ffffff','line-width':9,'line-opacity':.9}});
       map.addLayer({id:'trk',type:'line',source:'trk',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#1e6bff','line-width':5}});
@@ -748,6 +788,100 @@ body.mapOn #mp{background:#05080a}
     $('mpSnap').classList.toggle('on',on); $('mpSnap').textContent= on ? 'เกาะถนน: เปิด' : 'เกาะถนน: ปิด'; updMap(); }
   $('mpSnap').onclick=()=>setSnap(!snapOn);
   setSnap(snapOn); setHeadUp(headUp);
+  // ---- ค้นหาสถานที่ + นำทาง (Nominatim ค้นหา, OSRM หาเส้นทาง — ข้อมูล OpenStreetMap ฟรี) ----
+  const NOMI='https://nominatim.openstreetmap.org/search', OSRT='https://router.project-osrm.org/route/v1/driving/';
+  let nav=null, destMk=null, routeReq=false, offCnt=0, lastRoute=0, voiceOn=true, pick=null, lpT=null;
+  try{ voiceOn=localStorage.getItem('crv-voice')!=='0'; }catch(e){}
+  const fmtD=m=> m>=1000 ? (m/1000).toFixed(m>=10000?0:1)+' กม.' : (Math.max(10,Math.round(m/10)*10))+' ม.';
+  const fmtMin=s=>{ const m=Math.round(s/60); return m>=60 ? `${Math.floor(m/60)} ชม. ${m%60} นาที` : `${Math.max(1,m)} นาที`; };
+  const DIR={left:'เลี้ยวซ้าย',right:'เลี้ยวขวา','slight left':'เบี่ยงซ้าย','slight right':'เบี่ยงขวา','sharp left':'เลี้ยวซ้ายหักศอก','sharp right':'เลี้ยวขวาหักศอก',uturn:'กลับรถ',straight:'ตรงไป'};
+  const ANG={left:-90,right:90,'slight left':-45,'slight right':45,'sharp left':-135,'sharp right':135,uturn:180,straight:0};
+  function stepText(st){ const m=st.maneuver,t=m.type,mod=m.modifier||'',d=DIR[mod]||'ตรงไป',L=mod.includes('left');
+    if(t==='arrive') return 'ถึงจุดหมาย'; if(t==='depart') return 'ออกเดินทาง';
+    if(t==='roundabout'||t==='rotary') return `เข้าวงเวียน ออกทางที่ ${m.exit||1}`; if(t==='exit roundabout'||t==='exit rotary') return 'ออกจากวงเวียน';
+    if(t==='fork') return L?'ทางแยก ชิดซ้าย':'ทางแยก ชิดขวา'; if(t==='merge') return 'เข้าร่วมเส้นทาง';
+    if(t==='on ramp') return L?'ขึ้นทางลาด ชิดซ้าย':'ขึ้นทางลาด ชิดขวา'; if(t==='off ramp') return L?'ลงทางแยก ชิดซ้าย':'ลงทางแยก ชิดขวา';
+    if(t==='end of road') return 'สุดถนน '+d; if(t==='continue'||t==='new name') return (mod&&mod!=='straight')?d:'ตรงไป'; return d; }
+  function say(t){ try{ if(!voiceOn||!('speechSynthesis' in window)) return; const u=new SpeechSynthesisUtterance(t); u.lang='th-TH'; u.rate=1; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} }
+  // เรขาคณิตบนเส้นทาง: หาจุดใกล้สุดบนเส้น → ระยะตามแนวเส้น และระยะตั้งฉาก
+  function onRoute(lat,lon){ const c=nav.coords, k=Math.cos(lat*Math.PI/180)*111320, K=110540; let best={d:1e12,along:0};
+    for(let i=0;i<c.length-1;i++){ const ax=(c[i][0]-lon)*k, ay=(c[i][1]-lat)*K, bx=(c[i+1][0]-lon)*k, by=(c[i+1][1]-lat)*K;
+      const dx=bx-ax, dy=by-ay, L2=dx*dx+dy*dy; let t=L2?-(ax*dx+ay*dy)/L2:0; t=Math.max(0,Math.min(1,t));
+      const px=ax+t*dx, py=ay+t*dy, d=Math.hypot(px,py); if(d<best.d) best={d, along:nav.cum[i]+t*(nav.cum[i+1]-nav.cum[i])}; }
+    return best; }
+  async function routeTo(dest,quiet){
+    if(!fix){ $('mpMsg').textContent='รอสัญญาณ GPS ก่อนแล้วค่อยหาเส้นทาง'; return; }
+    if(routeReq) return; routeReq=true; lastRoute=Date.now();
+    try{
+      const r=await fetch(`${OSRT}${fix.lon.toFixed(6)},${fix.lat.toFixed(6)};${dest.lon.toFixed(6)},${dest.lat.toFixed(6)}?overview=full&geometries=geojson&steps=true`);
+      const j=await r.json(); if(j.code!=='Ok'||!j.routes||!j.routes.length) throw 0;
+      const rt=j.routes[0], coords=rt.geometry.coordinates, cum=[0];
+      for(let i=1;i<coords.length;i++) cum.push(cum[i-1]+hav({lat:coords[i-1][1],lon:coords[i-1][0]},{lat:coords[i][1],lon:coords[i][0]}));
+      const steps=[]; let acc=0; rt.legs[0].steps.forEach(st=>{ steps.push({st,at:acc*(cum[cum.length-1]/(rt.distance||1)),said:0}); acc+=st.distance; });
+      nav={dest,coords,cum,total:cum[cum.length-1],dur:rt.duration,steps};
+      offCnt=0; showNav(true); setRouteLayer();
+      if(!quiet){ follow=false; const b=coords.reduce((b,c)=>[[Math.min(b[0][0],c[0]),Math.min(b[0][1],c[1])],[Math.max(b[1][0],c[0]),Math.max(b[1][1],c[1])]],[[180,90],[-180,-90]]);
+        map.fitBounds(b,{padding:60,bearing:0,pitch:0,duration:800}); setTimeout(()=>{follow=true; $('mpFollow').hidden=true; updMap();},3500);
+        say(`เริ่มนำทาง ระยะทาง ${fmtD(nav.total)}`); }
+      else say('คำนวณเส้นทางใหม่');
+      updNav();
+    }catch(e){ $('mpMsg').textContent='หาเส้นทางไม่ได้ — ลองใหม่อีกครั้ง'; }
+    finally{ routeReq=false; }
+  }
+  function setRouteLayer(){ if(!map||!map.getSource) return; const s=map.getSource('route'); if(!s) return;
+    s.setData({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:nav?nav.coords:[]}});
+    if(nav){ if(!destMk) destMk=new maplibregl.Marker({color:'#e53935'}); destMk.setLngLat([nav.dest.lon,nav.dest.lat]).addTo(map); } else if(destMk) destMk.remove(); }
+  function showNav(on){ $('mp').classList.toggle('nav',on); $('nvBan').hidden=!on; $('nvFoot').hidden=!on; if(!on){ nav=null; setRouteLayer(); } }
+  function updNav(){
+    if(!nav||!fix) return;
+    const p=onRoute(fix.lat,fix.lon), rem=Math.max(0,nav.total-p.along);
+    if(rem<30){ say('ถึงจุดหมายแล้ว'); $('mpMsg').textContent='ถึงจุดหมายแล้ว ✓'; showNav(false); return; }
+    if(p.d>Math.max(50,(fix.acc||10)*2)){ offCnt++; if(offCnt>=3 && Date.now()-lastRoute>12000){ routeTo(nav.dest,true); return; } } else offCnt=0;
+    let nx=nav.steps.find(s=>s.at>p.along+8) || nav.steps[nav.steps.length-1];
+    const toTurn=Math.max(0,nx.at-p.along), txt=stepText(nx.st), road=nx.st.name||'';
+    $('nvDist').textContent=fmtD(toTurn); $('nvTxt').textContent=txt; $('nvRoad').textContent=road;
+    const t=nx.st.maneuver.type, mod=nx.st.maneuver.modifier||'straight';
+    $('nvArrow').style.transform=`rotate(${t==='arrive'?0:(ANG[mod]??0)}deg)`; $('nvArrow').classList.toggle('flag',t==='arrive');
+    const eta=nav.dur*(rem/nav.total), at=new Date(Date.now()+eta*1000);
+    $('nvRem').textContent=`เหลือ ${fmtD(rem)} • ${fmtMin(eta)} • ถึง ${String(at.getHours()).padStart(2,'0')}:${String(at.getMinutes()).padStart(2,'0')}`;
+    if(toTurn<=450 && toTurn>150 && nx.said<1 && nx.at-0>600){ nx.said=1; say(`อีก ${fmtD(toTurn)} ${txt}${road?' เข้าสู่ '+road:''}`); }
+    if(toTurn<=120 && nx.said<2){ nx.said=2; say(`${txt}${road?' เข้าสู่ '+road:''}`); }
+  }
+  // ค้นหาสถานที่ (กดปุ่มค้นหาเท่านั้น ตามเงื่อนไขการใช้งาน Nominatim) / พิมพ์พิกัด "lat, lon" ได้
+  async function doSearch(){
+    const q=$('nvQ').value.trim(); if(!q) return; const ul=$('nvRes'); ul.innerHTML='<li class="muted">กำลังค้นหา…</li>';
+    const m=q.match(/^\s*(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if(m){ const lat=+m[1], lon=+m[2]; ul.innerHTML=''; listRes([{name:`พิกัด ${lat}, ${lon}`,sub:'',lat,lon}]); return; }
+    try{ const c=fix||{lat:16.4419,lon:102.836};
+      const r=await fetch(`${NOMI}?format=jsonv2&limit=6&accept-language=th&q=${encodeURIComponent(q)}&viewbox=${c.lon-1},${c.lat+1},${c.lon+1},${c.lat-1}`);
+      const j=await r.json(); if(!j.length){ ul.innerHTML='<li class="muted">ไม่พบสถานที่ — ลองพิมพ์ชื่อให้ต่างไป หรือพิมพ์พิกัด</li>'; return; }
+      listRes(j.map(x=>({name:x.name||x.display_name.split(',')[0],sub:x.display_name,lat:+x.lat,lon:+x.lon})));
+    }catch(e){ ul.innerHTML='<li class="muted">ค้นหาไม่ได้ — ตรวจสอบอินเทอร์เน็ต</li>'; }
+  }
+  function listRes(arr){ const ul=$('nvRes'); ul.innerHTML='';
+    arr.forEach(x=>{ const li=document.createElement('li'); const d=fix?' • '+fmtD(hav(fix,x)):'';
+      li.innerHTML=`<b></b><small></small>`; li.querySelector('b').textContent=x.name; li.querySelector('small').textContent=(x.sub||'').slice(0,90)+d;
+      li.onclick=()=>{ closeSearch(); routeTo({lat:x.lat,lon:x.lon,name:x.name}); }; ul.appendChild(li); }); }
+  function openSearch(){ $('nvSearch').hidden=false; setTimeout(()=>$('nvQ').focus(),50); }
+  function closeSearch(){ $('nvSearch').hidden=true; $('nvQ').blur(); }
+  $('mpSearchBtn').onclick=openSearch; $('nvClose').onclick=closeSearch; $('nvGo').onclick=doSearch;
+  $('nvQ').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); doSearch(); } });
+  $('nvStop').onclick=()=>{ showNav(false); say('ยกเลิกการนำทาง'); };
+  function setVoice(on){ voiceOn=on; try{localStorage.setItem('crv-voice',on?'1':'0')}catch(e){} $('nvVoice').textContent=on?'🔊':'🔇'; if(!on) try{speechSynthesis.cancel()}catch(e){} }
+  $('nvVoice').onclick=()=>setVoice(!voiceOn); setVoice(voiceOn);
+  // กดค้างบนแผนที่ = ปักหมุดปลายทาง
+  function showPick(ll){ pick={lat:ll.lat,lon:ll.lng}; $('nvPickTxt').textContent=`${pick.lat.toFixed(5)}, ${pick.lon.toFixed(5)}`+(fix?` • ${fmtD(hav(fix,pick))}`:''); $('nvPick').hidden=false; }
+  $('nvPickGo').onclick=()=>{ $('nvPick').hidden=true; if(pick) routeTo({...pick,name:'จุดที่ปักหมุด'}); };
+  $('nvPickNo').onclick=()=>{ $('nvPick').hidden=true; pick=null; };
+  function hookMapNav(){
+    map.on('touchstart',e=>{ clearTimeout(lpT); if(e.originalEvent.touches.length!==1) return; const ll=e.lngLat; lpT=setTimeout(()=>showPick(ll),650); });
+    ['touchend','touchmove','dragstart','zoomstart','rotatestart'].forEach(ev=>map.on(ev,()=>clearTimeout(lpT)));
+    map.on('contextmenu',e=>showPick(e.lngLat));
+    map.addSource('route',{type:'geojson',data:{type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[]}}});
+    map.addLayer({id:'route-casing',type:'line',source:'route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#0b3f91','line-width':12}});
+    map.addLayer({id:'route',type:'line',source:'route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#2f9bff','line-width':7}});
+    if(nav) setRouteLayer();
+  }
   const SKIN_NAME={cyan:'สีฟ้า',green:'สีเขียว',red:'สีแดง',yellow:'สีเหลือง',lcd:'จอ LCD เครื่องมือสำรวจ',paper:'จอขาว เครื่องมือสำรวจ',map:'ความเร็วคู่แผนที่',ts:'จอสัมผัส ตัวควบคุมงานสำรวจ'};
   let toastT=null;
   function showSkin(){const t=$('skinToast'); t.textContent=SKIN_NAME[document.body.dataset.c]||''; t.style.setProperty('--tr',(rot||0)+'deg');
@@ -755,7 +889,7 @@ body.mapOn #mp{background:#05080a}
   // ปัดซ้าย/ขวา (ทั้งแนวตั้งและแนวนอน) = เปลี่ยนหน้ากาก
   let sw=null;
   document.addEventListener('touchstart',e=>{ if(e.touches.length!==1){sw=null;return;}
-    const t=e.touches[0]; if(t.target.closest('select')||t.target.closest('#mapBox')){sw=null;return;}
+    const t=e.touches[0]; if(t.target.closest('select,input,.nvpanel,.nvpick,.nvban')||t.target.closest('#mapBox')){sw=null;return;}
     if(t.clientX<28||t.clientX>innerWidth-28){sw=null;return;}               // เว้นขอบจอ (ท่าย้อนกลับของมือถือ)
     sw={x:t.clientX,y:t.clientY,t:Date.now()}; },{passive:true});
   document.addEventListener('touchend',e=>{ if(!sw) return; const t=e.changedTouches[0];
