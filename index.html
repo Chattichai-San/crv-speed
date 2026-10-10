@@ -75,7 +75,14 @@ button{font:700 1.1rem var(--display);border-radius:14px;border:1px solid var(--
 button.primary{background:var(--seg);border-color:var(--seg);color:#06201f}
 button.primary.running{background:transparent;color:var(--seg)}
 button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
-@media (orientation:landscape){body.big .dstats,body.big .limit{display:none}.dspeed svg{max-height:62vh;width:auto;margin:0 auto}}
+/* แนวนอน (มือถือ): ตัวเลขความเร็วดิจิทัลเต็มจออย่างเดียว */
+@media (orientation:landscape) and (max-height:600px){
+  header,.dial,.dstats,.limit,.msg,.controls{display:none!important}
+  #dig,#dig[hidden]{display:flex!important;flex-direction:row;align-items:flex-end;justify-content:center;gap:2vw;height:100%}
+  main{max-width:none;height:100vh;height:100dvh;justify-content:center;align-items:center;gap:0}
+  .dspeed svg{height:88vh;height:88dvh;width:auto;max-width:86vw}
+  .dunit{align-self:flex-end;font-size:6vh;padding-bottom:4vh}
+}
 @media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
@@ -176,7 +183,33 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
 
   let watchId=null, wake=null, timer=null;
   let last=null, dist=0, maxV=0, movingMs=0, shown=0, beeped=false, lastKmh=0, buf=[];
+  // ---- บันทึกทริป → Google Sheet + Calendar (ผ่านสคริปต์ CR-V Trip Log) ----
+  const LOG_URL='https://script.google.com/macros/s/AKfycbxMs2Os-kUZAo7whJYZVRBVfbcwmwzIbVEyorfTfVhuhSz_bX3fSQWsuciE3H5LMa-yDA/exec';
+  let tripStart=null, lastMove=null, tripSaved=false;
+  const ls={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+            set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
+            del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
+  function buildTrip(){
+    const r1=x=>Math.round(x*10)/10;
+    return {id:String(tripStart), start:new Date(tripStart).toISOString(), end:new Date(lastMove||Date.now()).toISOString(),
+      distKm:Math.round(dist/10)/100, movingMin:r1(movingMs/60000), totalMin:r1(((lastMove||Date.now())-tripStart)/60000),
+      avg:movingMs>5000?Math.round((dist/1000)/(movingMs/3600000)):0, max:Math.round(maxV)};
+  }
+  function queueTrip(t){ if(!t||!(t.distKm>=0.5)) return false; const q=ls.get('crv-queue',[]); if(!q.some(x=>x.id===t.id)) q.push(t); ls.set('crv-queue',q); return true; }
+  async function flush(){
+    const q=ls.get('crv-queue',[]); if(!q.length) return;
+    const left=[];
+    for(const t of q){
+      try{ await fetch(LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(t)}); }
+      catch(e){ left.push(t); }
+    }
+    ls.set('crv-queue',left);
+    $('msg').classList.remove('err');
+    $('msg').textContent = left.length ? `ยังไม่มีเน็ต — เก็บทริปไว้ ${left.length} รายการ จะส่งให้เมื่อเปิดแอปครั้งหน้า` : 'บันทึกทริปลงปฏิทินและชีตแล้ว ✓';
+  }
+  function resetTrip(){dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur');}
   const isBig=()=>document.body.classList.contains('big');
+  const landMQ=matchMedia('(orientation:landscape) and (max-height:600px)'), isLand=()=>landMQ.matches;
 
   function hav(a,b){const R=6371000,t=x=>x*Math.PI/180;
     const dLat=t(b.lat-a.lat),dLon=t(b.lon-a.lon);
@@ -197,9 +230,10 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
     const spd=Math.round(shown), v=Math.max(0,Math.min(MAXV,shown));
     const lim=+$('limitSel').value, over=lim>0 && shown>lim;
     if(over && !beeped){beep();beeped=true;} if(!over) beeped=false;
-    if(isBig()){
+    if(isBig()||isLand()){
       $('dSpeed').innerHTML=segSVG(String(spd).padStart(3,' ')); $('dSpeed').classList.toggle('over',over);
-    } else {
+    }
+    if(!isBig()){
       $('needle').style.transform=`rotate(${ang(v)}deg)`;
       $('prog').setAttribute('stroke-dashoffset',100-100*v/MAXV);
       $('prog').setAttribute('stroke',over?'#ff4d3d':'#2ee8e0');
@@ -241,7 +275,8 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
       const d=hav(last,cur), dt=now-last.t;
       if(d < (kmh/3.6)*(dt/1000)*1.5 + acc){dist+=d; movingMs+=dt;}
     }
-    if(kmh>0) maxV=Math.max(maxV,kmh);
+    if(kmh>0){ maxV=Math.max(maxV,kmh); if(!tripStart) tripStart=now; lastMove=now; }
+    if(tripStart && dist>0) ls.set('crv-cur',buildTrip());          // กันข้อมูลหายถ้าปิดแอปโดยไม่กดหยุด
     lastKmh=kmh; last=cur;
     render(kmh);
   }
@@ -254,6 +289,7 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
   }
 
   async function start(){
+    if(tripSaved) resetTrip();
     if(!('geolocation' in navigator)){$('msg').textContent='เครื่องนี้ไม่รองรับ GPS ในเบราว์เซอร์';$('msg').classList.add('err');return;}
     watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:0,timeout:15000});
     $('msg').textContent='กำลังหาสัญญาณ GPS…';
@@ -268,9 +304,11 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
     $('startBtn').textContent='เริ่มวัด'; $('startBtn').classList.remove('running');
     $('dot').className='dot'; $('acc').textContent='GPS ปิด';
     render(0);
+    if(tripStart && queueTrip(buildTrip())){ ls.del('crv-cur'); tripSaved=true; $('msg').textContent='กำลังบันทึกทริป…'; flush(); }
+    else if(tripStart){ $('msg').textContent='ทริปสั้นกว่า 0.5 กม. — ไม่บันทึก'; }
   }
   $('startBtn').onclick=()=>watchId==null?start():stop();
-  $('resetBtn').onclick=()=>{dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];render(0);};
+  $('resetBtn').onclick=()=>{resetTrip();render(0);};
   document.addEventListener('visibilitychange',async()=>{
     if(document.visibilityState==='visible' && watchId!=null){
       try{ if('wakeLock' in navigator) wake=await navigator.wakeLock.request('screen'); }catch(e){}
@@ -283,8 +321,13 @@ button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
     $('modeBtn').textContent=on?'เข็ม':'ดิจิทัล';render(lastKmh);try{localStorage.setItem('crv-big',on?'1':'0')}catch(e){}}
   try{setBig(localStorage.getItem('crv-big')==='1')}catch(e){setBig(false)}
   $('modeBtn').onclick=()=>setBig(!isBig());
-  $('dial').onclick=()=>setBig(true); $('dSpeed').onclick=()=>setBig(false);
+  $('dial').onclick=()=>setBig(true); $('dSpeed').onclick=()=>{if(!isLand())setBig(false);};
+  try{landMQ.addEventListener('change',()=>render(lastKmh));}catch(e){landMQ.addListener(()=>render(lastKmh));}
 
+  // ทริปที่ค้างจากครั้งก่อน (ปิดแอปโดยไม่กดหยุด) → ส่งบันทึก
+  const prev=ls.get('crv-cur',null); if(prev){ queueTrip(prev); ls.del('crv-cur'); }
+  flush();
+  window.addEventListener('online',flush);
   // เปิด GPS อัตโนมัติเมื่อเปิดแอป
   start();
   if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
