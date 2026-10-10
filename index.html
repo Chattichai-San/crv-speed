@@ -16,7 +16,7 @@
 :root{
   --bg:#121518; --panel:#1b1f23; --disc:#181c20; --line:#2a3036; --track:#262b30;
   --fg:#eef1f3; --muted:#8a949c;
-  --seg:#2ee8e0; --segoff:rgba(46,232,224,.09);
+  --seg:#2ee8e0; --segoff:rgba(46,232,224,.09); --glow:rgba(46,232,224,.28); --over:#ff4d3d;
   --hot1:#e8762f; --hot2:#e5381f; --warn:#ff4d3d; --ok:#5fc48a; --fair:#e8a23a;
   --display:"Chakra Petch","Sarabun",system-ui,sans-serif;
   --body:"Sarabun",system-ui,sans-serif;
@@ -42,18 +42,18 @@ main{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;m
 .dial svg{width:100%;height:auto;display:block}
 .dial .center{position:absolute;left:0;right:0;top:36%;display:flex;flex-direction:column;align-items:center;pointer-events:none}
 .dial .center .seg{width:42%}
-.dial .center .seg svg{filter:drop-shadow(0 0 8px rgba(46,232,224,.3))}
+.dial .center .seg svg{filter:drop-shadow(0 0 8px var(--glow))}
 .dial .center .u{font:700 1.3rem var(--display);color:var(--seg);margin-top:4px}
 .dial .gps-note{position:absolute;left:0;right:0;bottom:6%;text-align:center;font-size:.8rem;color:var(--muted)}
 #needle,#prog{transition:transform .45s ease-out,stroke-dashoffset .45s ease-out}
 
 /* ตัวเลข 7 ส่วน */
 .seg .on{fill:var(--seg)} .seg .off{fill:var(--segoff)}
-.over .seg .on,.seg.over .on{fill:var(--warn)}
+.over .seg .on,.seg.over .on{fill:var(--over)}
 
 /* โหมดดิจิทัล */
 .dig{display:flex;flex-direction:column;gap:6px;width:100%}
-.dspeed svg{width:100%;height:auto;display:block;filter:drop-shadow(0 0 10px rgba(46,232,224,.25))}
+.dspeed svg{width:100%;height:auto;display:block;filter:drop-shadow(0 0 10px var(--glow))}
 .dspeed.over svg{filter:drop-shadow(0 0 10px rgba(255,77,61,.3))}
 .dunit{align-self:flex-end;font:700 1.9rem var(--display);color:var(--seg)}
 
@@ -88,6 +88,16 @@ body.rot header,body.rot .dial,body.rot .dstats,body.rot .limit,body.rot .msg,bo
 body.rot #dig,body.rot #dig[hidden]{display:flex!important;position:fixed;top:50%;left:50%;width:100vh;height:100vw;flex-direction:row;align-items:center;justify-content:center;gap:2vh;transform:translate(-50%,-50%) rotate(var(--r,90deg))}
 body.rot .dspeed svg{height:80vw;width:auto;max-width:84vh}
 body.rot .dunit{align-self:flex-end;font-size:6vw;line-height:1;padding-bottom:11vw}
+/* สีตัวเลข: ฟ้า (ค่าเริ่มต้น) / เขียว / แดง / เหลือง */
+body[data-c="green"]{--seg:#3dff7a;--segoff:rgba(61,255,122,.09);--glow:rgba(61,255,122,.28)}
+body[data-c="red"]{--seg:#ff3b30;--segoff:rgba(255,59,48,.10);--glow:rgba(255,59,48,.30);--over:#ffffff}
+body[data-c="yellow"]{--seg:#ffd60a;--segoff:rgba(255,214,10,.09);--glow:rgba(255,214,10,.28)}
+.colors{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9rem;color:var(--muted)}
+.colors .sw{display:flex;gap:12px}
+.colors button{width:34px;height:34px;padding:0;border-radius:50%;border:2px solid transparent;background:var(--c);box-shadow:0 0 8px var(--c)}
+.colors button[aria-pressed="true"]{border-color:var(--fg);outline:2px solid var(--bg);outline-offset:-5px}
+@media (orientation:landscape) and (max-height:600px){.colors{display:none!important}}
+body.rot .colors{display:none!important}
 @media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
@@ -110,7 +120,7 @@ body.rot .dunit{align-self:flex-end;font-size:6vw;line-height:1;padding-bottom:1
       <circle cx="160" cy="160" r="156" fill="none" stroke="#22272c" stroke-width="2"/>
       <g id="scale"></g>
       <path id="progTrack" fill="none" stroke="#262b30" stroke-width="14" stroke-linecap="butt"/>
-      <path id="prog" fill="none" stroke="#2ee8e0" stroke-width="14" stroke-linecap="butt" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" opacity=".85"/>
+      <path id="prog" fill="none" style="stroke:var(--seg)" stroke-width="14" stroke-linecap="butt" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" opacity=".85"/>
       <line id="needle" x1="160" y1="58" x2="160" y2="20" stroke="#dffcfb" stroke-width="5" stroke-linecap="round" filter="url(#glow)"
         style="transform-origin:160px 160px;transform:rotate(-135deg)"/>
     </svg>
@@ -127,6 +137,15 @@ body.rot .dunit{align-self:flex-end;font-size:6vw;line-height:1;padding-bottom:1
     <div class="dcell"><div class="k">ระยะทาง</div><div class="dval seg"><span id="dDist"></span><small>km</small></div></div>
     <div class="dcell"><div class="k">ความเร็วเฉลี่ย</div><div class="dval seg"><span id="dAvg"></span><small>km/h</small></div></div>
     <div class="dcell"><div class="k">ความเร็วสูงสุด</div><div class="dval seg"><span id="dMax"></span><small>km/h</small></div></div>
+  </div>
+
+  <div class="colors">สีตัวเลข
+    <div class="sw" id="colorSw">
+      <button type="button" data-c="cyan" style="--c:#2ee8e0" aria-label="สีฟ้า"></button>
+      <button type="button" data-c="green" style="--c:#3dff7a" aria-label="สีเขียว"></button>
+      <button type="button" data-c="red" style="--c:#ff3b30" aria-label="สีแดง"></button>
+      <button type="button" data-c="yellow" style="--c:#ffd60a" aria-label="สีเหลือง"></button>
+    </div>
   </div>
 
   <label class="limit" for="limitSel">เตือนเมื่อเกินความเร็ว
@@ -164,7 +183,7 @@ body.rot .dunit{align-self:flex-end;font-size:6vw;line-height:1;padding-bottom:1
   for(let v=0;v<=MAXV;v+=10){
     const major=v%20===0, hot=v>100;
     const [a,b]=pt(ang(v),major?127:130),[c,e]=pt(ang(v),142);
-    add('line',{x1:a,y1:b,x2:c,y2:e,stroke:hot?(v>=150?'#e5381f':'#e8762f'):(major?'#2ee8e0':'#4a535b'),'stroke-width':major?3:1.5,'stroke-linecap':'round'});
+    const ln=add('line',{x1:a,y1:b,x2:c,y2:e,stroke:hot?(v>=150?'#e5381f':'#e8762f'):(major?'':'#4a535b'),'stroke-width':major?3:1.5,'stroke-linecap':'round'}); if(major&&!hot) ln.style.stroke='var(--seg)';
     if(major){const [tx,ty]=pt(ang(v),112);
       const t=add('text',{x:tx,y:ty+5,'text-anchor':'middle',fill:'#c9d1d6','font-size':14,'font-weight':700,'font-family':'Chakra Petch, sans-serif'});t.textContent=v;}
   }
@@ -253,7 +272,7 @@ body.rot .dunit{align-self:flex-end;font-size:6vw;line-height:1;padding-bottom:1
     if(!isBig()){
       $('needle').style.transform=`rotate(${ang(v)}deg)`;
       $('prog').setAttribute('stroke-dashoffset',100-100*v/MAXV);
-      $('prog').setAttribute('stroke',over?'#ff4d3d':'#2ee8e0');
+      $('prog').style.stroke=over?'var(--over)':'var(--seg)';
       $('gSpeed').innerHTML=segSVG(String(spd)); $('gSpeed').classList.toggle('over',over);
     }
     renderStats();
@@ -340,7 +359,14 @@ body.rot .dunit{align-self:flex-end;font-size:6vw;line-height:1;padding-bottom:1
     $('modeBtn').textContent=on?'เข็ม':'ดิจิทัล';render(lastKmh);try{localStorage.setItem('crv-big',on?'1':'0')}catch(e){}}
   try{setBig(localStorage.getItem('crv-big')==='1')}catch(e){setBig(false)}
   $('modeBtn').onclick=()=>setBig(!isBig());
-  $('dial').onclick=()=>setBig(true); $('dSpeed').onclick=()=>{if(!isLand())setBig(false);};
+  $('dial').onclick=()=>setBig(true); $('dSpeed').onclick=()=>{if(isLand()||rot) nextColor(); else setBig(false);};
+  const COLORS=['cyan','green','red','yellow'];
+  function setColor(c){ if(!COLORS.includes(c)) c='cyan'; document.body.dataset.c=c;
+    document.querySelectorAll('#colorSw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c));
+    try{localStorage.setItem('crv-color',c)}catch(e){} }
+  function nextColor(){ setColor(COLORS[(COLORS.indexOf(document.body.dataset.c||'cyan')+1)%COLORS.length]); }
+  document.querySelectorAll('#colorSw button').forEach(b=>b.onclick=()=>setColor(b.dataset.c));
+  try{setColor(localStorage.getItem('crv-color')||'cyan')}catch(e){setColor('cyan')}
   try{landMQ.addEventListener('change',()=>render(lastKmh));}catch(e){landMQ.addListener(()=>render(lastKmh));}
   // ปลดล็อกการหมุนจอของแอปที่ติดตั้งไว้ (เดิมล็อกแนวตั้ง)
   const unlockRot=()=>{try{screen.orientation.lock('any').catch(()=>{});}catch(e){}};
