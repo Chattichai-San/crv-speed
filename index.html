@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14171a">
+<title>มาตรวัดความเร็ว CR-V</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Sarabun:wght@400;600&display=swap">
+<style>
+/* Layout: one-screen instrument cluster — arc gauge on top, trip readouts below, controls pinned at bottom */
+:root{
+  --bg:#14171a; --panel:#1d2125; --line:#2c3238;
+  --fg:#eef1f3; --muted:#8a949c;
+  --arc:#d9783a; --needle:#f2efe6; --warn:#ff4d3d; --ok:#5fc48a;
+  --display:"Chakra Petch","Sarabun",system-ui,sans-serif;
+  --body:"Sarabun",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);
+  display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) 16px env(safe-area-inset-bottom,0px);
+  -webkit-user-select:none;user-select:none}
+header{display:flex;justify-content:space-between;align-items:center;padding-block:12px 4px;gap:8px}
+header h1{font:700 1rem var(--display);letter-spacing:.06em;margin:0;text-transform:uppercase}
+.gps{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.dot.good{background:var(--ok)} .dot.fair{background:var(--arc)} .dot.bad{background:var(--warn)}
+main{flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;max-width:520px;width:100%;margin:0 auto}
+.gauge{position:relative;width:100%;max-width:100%}
+.gauge svg{width:100%;height:auto;display:block}
+.readout{position:absolute;left:0;right:0;top:46%;text-align:center}
+.speed{font:700 clamp(4.5rem,24vw,7.5rem)/1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.speed.over{color:var(--warn)}
+.unit{font:500 1rem var(--display);color:var(--muted);letter-spacing:.12em}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stat{background:var(--panel);padding:10px 14px;min-width:0}
+.stat .k{font-size:.8rem;color:var(--muted)}
+.stat .v{font:700 1.5rem var(--display);font-variant-numeric:tabular-nums}
+.stat .v small{font:500 .8rem var(--display);color:var(--muted);margin-left:4px}
+.limit{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9rem;color:var(--muted)}
+.limit select{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:600 1rem var(--body)}
+.controls{display:grid;grid-template-columns:2fr 1fr;gap:10px;padding-block:12px 16px;max-width:520px;width:100%;margin:0 auto}
+button{font:700 1.1rem var(--display);border-radius:12px;border:1px solid var(--line);padding:16px;cursor:pointer;
+  background:var(--panel);color:var(--fg);letter-spacing:.04em}
+button.primary{background:var(--arc);border-color:var(--arc);color:#1a0f08}
+button.primary.running{background:transparent;color:var(--arc)}
+button:focus-visible{outline:3px solid var(--needle);outline-offset:2px}
+.msg{text-align:center;font-size:.9rem;color:var(--muted);min-height:1.3em}
+.msg.err{color:var(--warn)}
+@media (prefers-reduced-motion:reduce){#needle{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Honda CR-V · GPS</h1>
+  <div class="gps"><span class="dot" id="dot"></span><span id="acc">GPS ปิด</span></div>
+</header>
+
+<main>
+  <div class="gauge">
+    <svg viewBox="0 0 300 200" aria-hidden="true">
+      <g id="ticks"></g>
+      <line id="needle" x1="150" y1="160" x2="150" y2="42" stroke="var(--needle)" stroke-width="4" stroke-linecap="round"
+        style="transform-origin:150px 160px;transform:rotate(-120deg);transition:transform .45s ease-out"/>
+      <circle cx="150" cy="160" r="12" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>
+    </svg>
+    <div class="readout">
+      <div class="speed" id="speed">0</div>
+      <div class="unit">km/h</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">ระยะทาง</div><div class="v"><span id="dist">0.00</span><small>กม.</small></div></div>
+    <div class="stat"><div class="k">เวลาวิ่ง</div><div class="v" id="time">0:00:00</div></div>
+    <div class="stat"><div class="k">เฉลี่ย</div><div class="v"><span id="avg">0</span><small>km/h</small></div></div>
+    <div class="stat"><div class="k">สูงสุด</div><div class="v"><span id="max">0</span><small>km/h</small></div></div>
+  </div>
+
+  <label class="limit" for="limitSel">เตือนเมื่อเกินความเร็ว
+    <select id="limitSel">
+      <option value="0">ไม่เตือน</option>
+      <option value="60">60</option>
+      <option value="80">80</option>
+      <option value="90" selected>90</option>
+      <option value="100">100</option>
+      <option value="120">120</option>
+    </select>
+  </label>
+  <div class="msg" id="msg">กำลังเปิด GPS…</div>
+</main>
+
+<div class="controls">
+  <button class="primary" id="startBtn">เริ่มวัด</button>
+  <button id="resetBtn">รีเซ็ต</button>
+</div>
+
+<script>
+(function(){
+  // Gauge: 0–180 km/h over a 240° sweep, like the CR-V cluster
+  const MAXV=180, SWEEP=240, START=-120, CX=150, CY=160, R=118;
+  const ticks=document.getElementById('ticks');
+  const ns='http://www.w3.org/2000/svg';
+  function pt(deg,r){const a=(deg-90)*Math.PI/180;return [CX+r*Math.cos(a),CY+r*Math.sin(a)];}
+  // orange arc
+  const [x0,y0]=pt(START,R+8),[x1,y1]=pt(START+SWEEP,R+8);
+  const arc=document.createElementNS(ns,'path');
+  arc.setAttribute('d',`M${x0} ${y0} A${R+8} ${R+8} 0 1 1 ${x1} ${y1}`);
+  arc.setAttribute('fill','none');arc.setAttribute('stroke','var(--arc)');arc.setAttribute('stroke-width','4');
+  ticks.appendChild(arc);
+  for(let v=0;v<=MAXV;v+=10){
+    const d=START+SWEEP*v/MAXV, major=v%20===0;
+    const [a,b]=pt(d,R+6),[c,e]=pt(d,R-(major?10:3));
+    const l=document.createElementNS(ns,'line');
+    l.setAttribute('x1',a);l.setAttribute('y1',b);l.setAttribute('x2',c);l.setAttribute('y2',e);
+    l.setAttribute('stroke','var(--fg)');l.setAttribute('stroke-width',major?3:1.5);
+    ticks.appendChild(l);
+    if(major){
+      const [tx,ty]=pt(d,R-24);
+      const t=document.createElementNS(ns,'text');
+      t.setAttribute('x',tx);t.setAttribute('y',ty+4);t.setAttribute('text-anchor','middle');
+      t.setAttribute('fill','var(--muted)');t.setAttribute('font-size','11');t.setAttribute('font-family','Chakra Petch, sans-serif');
+      t.textContent=v;ticks.appendChild(t);
+    }
+  }
+
+  const $=id=>document.getElementById(id);
+  const needle=$('needle'), speedEl=$('speed');
+  let watchId=null, wake=null, timer=null;
+  let last=null, dist=0, maxV=0, movingMs=0, startT=null, shown=0, beeped=false;
+
+  function hav(a,b){const R=6371000,t=x=>x*Math.PI/180;
+    const dLat=t(b.lat-a.lat),dLon=t(b.lon-a.lon);
+    const h=Math.sin(dLat/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dLon/2)**2;
+    return 2*R*Math.asin(Math.sqrt(h));}
+
+  function fmtTime(ms){const s=Math.floor(ms/1000);
+    return `${Math.floor(s/3600)}:${String(Math.floor(s/60)%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
+
+  function render(kmh){
+    shown = shown*0.4 + kmh*0.6;          // light smoothing
+    const v=Math.max(0,Math.min(MAXV,shown));
+    needle.style.transform=`rotate(${START+SWEEP*v/MAXV}deg)`;
+    speedEl.textContent=Math.round(shown);
+    const lim=+$('limitSel').value;
+    const over=lim>0 && shown>lim;
+    speedEl.classList.toggle('over',over);
+    if(over && !beeped){beep();beeped=true;} if(!over) beeped=false;
+    $('max').textContent=Math.round(maxV);
+    $('dist').textContent=(dist/1000).toFixed(2);
+    $('avg').textContent=movingMs>0?Math.round((dist/1000)/(movingMs/3600000)):0;
+  }
+
+  let ac=null;
+  function beep(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=880;o.connect(g);g.connect(ac.destination);
+    g.gain.setValueAtTime(.3,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.5);
+    o.start();o.stop(ac.currentTime+.5);}catch(e){}
+    if(navigator.vibrate) navigator.vibrate(300);}
+
+  function onPos(p){
+    const c=p.coords, now=p.timestamp, acc=c.accuracy;
+    const dot=$('dot');
+    dot.className='dot '+(acc<=10?'good':acc<=30?'fair':'bad');
+    $('acc').textContent=`±${Math.round(acc)} ม.`;
+    $('msg').textContent=''; $('msg').classList.remove('err');
+    const cur={lat:c.latitude,lon:c.longitude,t:now};
+    let kmh;
+    if(c.speed!=null && !isNaN(c.speed)) kmh=c.speed*3.6;           // GPS Doppler speed (แม่นกว่า)
+    else if(last){const dt=(now-last.t)/1000; kmh=dt>0?hav(last,cur)/dt*3.6:0;}
+    else kmh=0;
+    if(kmh<2) kmh=0;                                                  // ตัดค่าลอยตอนจอด
+    if(last && acc<=30){
+      const d=hav(last,cur), dt=now-last.t;
+      if(kmh>0 && d<dt/1000*70) {dist+=d; movingMs+=dt;}             // กันกระโดด >250 km/h
+    }
+    if(acc<=30) maxV=Math.max(maxV,kmh);
+    last=cur;
+    render(kmh);
+  }
+
+  function onErr(e){
+    const m={1:'ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง — เปิดสิทธิ์ Location ให้ Chrome แล้วลองใหม่',
+             2:'ยังจับสัญญาณ GPS ไม่ได้ — ลองออกที่โล่ง',3:'รอสัญญาณ GPS นานเกินไป กำลังลองใหม่…'};
+    $('msg').textContent=m[e.code]||'GPS ขัดข้อง'; $('msg').classList.add('err');
+    if(e.code===1) stop();
+  }
+
+  async function start(){
+    if(!('geolocation' in navigator)){$('msg').textContent='เครื่องนี้ไม่รองรับ GPS ในเบราว์เซอร์';$('msg').classList.add('err');return;}
+    watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:0,timeout:15000});
+    $('msg').textContent='กำลังหาสัญญาณ GPS…';
+    $('startBtn').textContent='หยุด'; $('startBtn').classList.add('running');
+    startT=Date.now();
+    timer=setInterval(()=>{$('time').textContent=fmtTime(movingMs);},1000);
+    try{ if('wakeLock' in navigator) wake=await navigator.wakeLock.request('screen'); }catch(e){}
+  }
+  function stop(){
+    if(watchId!=null) navigator.geolocation.clearWatch(watchId);
+    watchId=null; clearInterval(timer); last=null;
+    try{wake&&wake.release();}catch(e){} wake=null;
+    $('startBtn').textContent='เริ่มวัด'; $('startBtn').classList.remove('running');
+    $('dot').className='dot'; $('acc').textContent='GPS ปิด';
+    render(0);
+  }
+  $('startBtn').onclick=()=>watchId==null?start():stop();
+  $('resetBtn').onclick=()=>{dist=0;maxV=0;movingMs=0;shown=0;last=null;$('time').textContent='0:00:00';render(0);};
+  document.addEventListener('visibilitychange',async()=>{
+    if(document.visibilityState==='visible' && watchId!=null){
+      try{ if('wakeLock' in navigator) wake=await navigator.wakeLock.request('screen'); }catch(e){}
+    }});
+  try{const s=localStorage.getItem('crv-limit'); if(s) $('limitSel').value=s;}catch(e){}
+  $('limitSel').onchange=e=>{try{localStorage.setItem('crv-limit',e.target.value);}catch(_){}};
+  render(0);
+  // เปิด GPS อัตโนมัติเมื่อเปิดแอป (ครั้งแรก Chrome จะถามสิทธิ์ครั้งเดียว)
+  start();
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+})();
+</script>
+</body>
+</html>
