@@ -201,16 +201,27 @@ body.rot .dunit{font-size:6vw;padding-bottom:6vw}
       avg:movingMs>5000?Math.round((dist/1000)/(movingMs/3600000)):0, max:Math.round(maxV)};
   }
   function queueTrip(t){ if(!t||!(t.distKm>=0.5)) return false; const q=ls.get('crv-queue',[]); if(!q.some(x=>x.id===t.id)) q.push(t); ls.set('crv-queue',q); return true; }
-  async function flush(){
-    const q=ls.get('crv-queue',[]); if(!q.length) return;
-    const left=[];
+  // ต้องมีรหัสบันทึกทริป (ตั้งไว้ใน Apps Script) — ใส่ครั้งเดียวต่อเครื่อง คนอื่นที่มีลิงก์จึงบันทึกไม่ได้
+  let stickyUntil=0;
+  function note(t,err){$('msg').textContent=t;$('msg').classList.toggle('err',!!err);stickyUntil=err?Infinity:Date.now()+8000;}
+  let flushing=false;
+  async function flush(ask){
+    const q=ls.get('crv-queue',[]); if(!q.length||flushing) return;
+    let key=ls.get('crv-key','');
+    if(!key && ask!==false){ key=(prompt('ใส่รหัสบันทึกทริป (ใส่ครั้งเดียวในเครื่องนี้)')||'').trim(); if(key) ls.set('crv-key',key); }
+    if(!key){ note(`มีทริปรอบันทึก ${q.length} รายการ — แตะตรงนี้เพื่อใส่รหัส`,true); return; }
+    flushing=true; stickyUntil=0; const left=[]; let bad=false;
     for(const t of q){
-      try{ await fetch(LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(t)}); }
-      catch(e){ left.push(t); }
+      if(bad){left.push(t);continue;}
+      try{
+        const r=await fetch(LOG_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},t,{key}))});
+        const j=await r.json();
+        if(j&&j.error==='key'){bad=true;left.push(t);}
+      }catch(e){ left.push(t); }
     }
-    ls.set('crv-queue',left);
-    $('msg').classList.remove('err');
-    $('msg').textContent = left.length ? `ยังไม่มีเน็ต — เก็บทริปไว้ ${left.length} รายการ จะส่งให้เมื่อเปิดแอปครั้งหน้า` : 'บันทึกทริปลงปฏิทินและชีตแล้ว ✓';
+    flushing=false; ls.set('crv-queue',left);
+    if(bad){ ls.del('crv-key'); note('รหัสบันทึกทริปไม่ถูกต้อง — แตะตรงนี้เพื่อใส่ใหม่',true); }
+    else note(left.length ? `ยังส่งไม่ได้ (ไม่มีเน็ต?) — เก็บทริปไว้ ${left.length} รายการ จะส่งให้อีกครั้งอัตโนมัติ` : 'บันทึกทริปลงปฏิทินและชีตแล้ว ✓');
   }
   function resetTrip(){dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur');}
   const isBig=()=>document.body.classList.contains('big');
@@ -259,11 +270,12 @@ body.rot .dunit{font-size:6vw;padding-bottom:6vw}
     const c=p.coords, now=p.timestamp, acc=c.accuracy;
     $('dot').className='dot '+(acc<=10?'good':acc<=30?'fair':'bad');
     $('acc').textContent=`±${Math.round(acc)} ม.`;
-    $('msg').textContent=''; $('msg').classList.remove('err');
+    const free=Date.now()>stickyUntil;
+    if(free){ $('msg').textContent=''; $('msg').classList.remove('err'); }
     const cur={lat:c.latitude,lon:c.longitude,t:now,acc:acc};
     let kmh=0;
     if(acc>15){                                                       // ใช้เฉพาะสัญญาณ GPS ที่แม่นพอ
-      $('msg').textContent='สัญญาณ GPS ยังไม่แม่น (ในอาคาร?) — ความเร็วแสดง 0 จนกว่าจะจับดาวเทียมได้';
+      if(free) $('msg').textContent='สัญญาณ GPS ยังไม่แม่น (ในอาคาร?) — ความเร็วแสดง 0 จนกว่าจะจับดาวเทียมได้';
       last=null; buf=[]; lastKmh=0; render(0); return;
     }
     if(c.speed!=null && !isNaN(c.speed)){
@@ -314,6 +326,7 @@ body.rot .dunit{font-size:6vw;padding-bottom:6vw}
     else if(tripStart){ $('msg').textContent='ทริปสั้นกว่า 0.5 กม. — ไม่บันทึก'; }
   }
   $('startBtn').onclick=()=>watchId==null?start():stop();
+  $('msg').onclick=()=>flush();
   $('resetBtn').onclick=()=>{resetTrip();render(0);};
   document.addEventListener('visibilitychange',async()=>{
     if(document.visibilityState==='visible' && watchId!=null){
@@ -344,8 +357,8 @@ body.rot .dunit{font-size:6vw;padding-bottom:6vw}
 
   // ทริปที่ค้างจากครั้งก่อน (ปิดแอปโดยไม่กดหยุด) → ส่งบันทึก
   const prev=ls.get('crv-cur',null); if(prev){ queueTrip(prev); ls.del('crv-cur'); }
-  flush();
-  window.addEventListener('online',flush);
+  flush(false);
+  window.addEventListener('online',()=>flush(false));
   // เปิด GPS อัตโนมัติเมื่อเปิดแอป
   start();
   if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
