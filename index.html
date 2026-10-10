@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Sarabun:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Sarabun:wght@400;600&family=Tinos:wght@400;700&display=swap">
 <style>
 /* Layout: one-screen instrument — dial (or giant digits) on top, 7-segment trip readouts below, controls pinned at bottom */
 :root{
@@ -93,8 +93,8 @@ body[data-c="green"]{--seg:#3dff7a;--segoff:rgba(61,255,122,.09);--glow:rgba(61,
 body[data-c="red"]{--seg:#ff3b30;--segoff:rgba(255,59,48,.10);--glow:rgba(255,59,48,.30);--over:#ffffff}
 body[data-c="yellow"]{--seg:#ffd60a;--segoff:rgba(255,214,10,.09);--glow:rgba(255,214,10,.28)}
 .colors{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9rem;color:var(--muted)}
-.colors .sw{display:flex;gap:12px}
-.colors button{width:34px;height:34px;padding:0;border-radius:50%;border:2px solid transparent;background:var(--c);box-shadow:0 0 8px var(--c)}
+.colors .sw{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.colors button{width:30px;height:30px;padding:0;border-radius:50%;border:2px solid transparent;background:var(--c);box-shadow:0 0 8px var(--c)}
 .colors button[aria-pressed="true"]{border-color:var(--fg);outline:2px solid var(--bg);outline-offset:-5px}
 @media (orientation:landscape) and (max-height:600px){.colors{display:none!important}}
 body.rot .colors{display:none!important}
@@ -183,6 +183,69 @@ body[data-c="paper"] #dig.lcdon::after,body[data-c="paper"] main::after{display:
 #skinToast{position:fixed;left:50%;top:50%;z-index:50;pointer-events:none;transform:translate(-50%,-50%) rotate(var(--tr,0deg));
   font:700 1.15rem var(--display);padding:10px 18px;border-radius:12px;background:rgba(10,12,14,.82);color:#fff;opacity:0;transition:opacity .25s;white-space:nowrap}
 #skinToast.show{opacity:1}
+/* หน้ากากจอสัมผัสแบบตัวควบคุมงานสำรวจรุ่นใหม่: จอขาว แถบสถานะ ไทล์ไอคอน แถบปุ่มล่าง */
+.colors button.tssw{background:linear-gradient(135deg,#fff 0 50%,#1d5fa8 50%);box-shadow:0 0 0 1px #9aa3ab}
+body.tsOn{background:#cfd3d6}
+body.tsOn>header,body.tsOn>main,body.tsOn>.controls{display:none!important}
+#ts{display:none}
+body.tsOn #ts{display:block;position:fixed;inset:0;padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));box-sizing:border-box}
+body.rot.tsOn #ts{inset:auto;top:50%;left:50%;width:100vh;height:100vw;transform:translate(-50%,-50%) rotate(var(--r,90deg))}
+.tsdev{height:100%;box-sizing:border-box;padding:10px;border-radius:22px;background:linear-gradient(160deg,#f4f5f6,#dfe3e6);box-shadow:inset 0 1px 0 #fff,0 2px 10px rgba(0,0,0,.18)}
+.tsscr{height:100%;display:grid;grid-template-rows:auto 1fr auto auto;border-radius:12px;overflow:hidden;background:#f6f8fa;color:#1d232a;
+  box-shadow:0 0 0 5px #23272b,0 0 0 6px #4a5056;container-type:size;font-family:"Times New Roman",Tinos,"Sarabun",serif}
+.tsbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:.35em .8em;background:#fff;border-bottom:1px solid #dde2e7;font-size:clamp(13px,min(3.2cqh,4.2cqw),22px);white-space:nowrap}
+.tstitle{font-weight:700}
+.tstitle em{font-style:normal;font-weight:400;color:#5c6670;margin-left:.35em}
+.tsico{display:flex;align-items:center;gap:.7em;color:#3a434c}
+.tsico .ic{display:flex;align-items:center;gap:.2em}
+.tsico svg{width:1.1em;height:1.1em;fill:none;stroke:#1d5fa8;stroke-width:2;stroke-linecap:round}
+.bat{display:inline-block;width:1.6em;height:.8em;border:1.5px solid #3a434c;border-radius:2px;position:relative;padding:1px;box-sizing:border-box}
+.bat::after{content:"";position:absolute;right:-4px;top:25%;width:2px;height:50%;background:#3a434c}
+.bat i{display:block;height:100%;width:100%;background:#2e9e5b;border-radius:1px}
+.tsbody{display:grid;grid-template-rows:1fr auto;gap:clamp(6px,1.4cqh,12px);padding:clamp(6px,1.4cqh,12px);min-height:0}
+.tsspd{background:#fff;border:1px solid #dde2e7;border-radius:12px;padding:.4em .9em .6em;display:grid;grid-template-rows:auto 1fr auto;font-size:clamp(13px,min(3cqh,4.2cqw),20px)}
+.tsspd .th{display:flex;justify-content:space-between;align-items:baseline;color:#5c6670;font-family:"Sarabun",sans-serif}
+.tsspd small{font-size:.9em;color:#5c6670}
+.sv{display:flex;align-items:baseline;justify-content:center;gap:.25em;align-self:center}
+.sv span{font-size:clamp(70px,min(30cqh,52cqw),320px);line-height:1;font-variant-numeric:tabular-nums;color:#11161b}
+.sv em{font-style:normal;font-size:clamp(16px,min(4cqh,6cqw),30px);color:#5c6670}
+.sbarw{padding:0 .6em}
+.sbar{position:relative;height:clamp(7px,1.3cqh,12px);border-radius:9px;background:#e7ebef;overflow:hidden}
+#tsLimM{position:absolute;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#c8102e}
+.sscale{position:relative;height:clamp(22px,4.4cqh,40px);font:clamp(11px,min(2.2cqh,3cqw),17px) "Times New Roman",Tinos,serif;color:#5c6670}
+.sscale i{position:absolute;top:2px;width:1px;height:28%;background:#9aa4ad}
+.sscale i.mj{width:1.5px;height:42%;background:#3a434c}
+.sscale span{position:absolute;bottom:0;transform:translateX(-50%);font-variant-numeric:tabular-nums}
+.sscale span.hot{color:#c8102e}
+.sbar i{display:block;height:100%;width:0;background:#1d5fa8;border-radius:9px;transition:width .3s}
+.tsspd.over{border-color:#c8102e;box-shadow:inset 0 0 0 2px #c8102e}
+.tsspd.over .sv span{color:#c8102e} .tsspd.over .sbar i{background:#c8102e}
+.tsgrid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:auto;gap:clamp(6px,1.4cqh,12px);min-height:0}
+.tt{background:#fff;border:1px solid #dde2e7;border-radius:12px;padding:.5em .75em .55em;gap:.5em;display:flex;flex-direction:column;justify-content:space-between;min-width:0;font-size:clamp(12px,min(2.6cqh,3.8cqw),19px)}
+.th{display:flex;align-items:center;gap:.4em;color:#5c6670;font-family:"Sarabun",sans-serif}
+.th svg{width:1.4em;height:1.4em;fill:none;stroke:#1d5fa8;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tv{font-size:1.75em;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:#11161b;overflow:hidden;text-overflow:ellipsis}
+.tpos{display:flex;flex-direction:column;align-items:flex-end;font-size:1.15em;line-height:1.15}
+.tsmsg{min-height:1.1em;padding:0 .9em .2em;font:clamp(12px,min(2.6cqh,3.6cqw),18px) "Sarabun",sans-serif;color:#5c6670}
+.tskeys{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid #dde2e7}
+.tskeys button{display:flex;align-items:center;justify-content:center;gap:.45em;padding:.7em 0;background:none;border:0;border-left:1px solid #e4e8ec;border-radius:0;
+  font:700 clamp(13px,min(2.8cqh,4cqw),20px) "Times New Roman",Tinos,serif;color:#1d232a;letter-spacing:.04em}
+.tskeys button:first-child{border-left:0}
+.tskeys button svg{width:1.2em;height:1.2em;fill:none;stroke:#1d5fa8;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tskeys #tF1 svg{fill:#1d5fa8;stroke:none}
+.tskeys button:active{background:#eef3f8}
+.tskeys button:focus-visible{outline:3px solid #1d5fa8;outline-offset:-3px}
+/* แนวนอน: ความเร็วซ้าย ไทล์ขวา */
+#ts.wide .tsbody{grid-template-columns:1.05fr 1fr;grid-template-rows:1fr}
+#ts.wide .tsgrid{grid-auto-rows:1fr}
+#ts:not(.wide) .tstitle em{display:none}
+#ts:not(.wide) .tsbody{grid-template-rows:auto 1fr}
+#ts:not(.wide) .tsspd{grid-template-rows:auto auto auto;row-gap:.3em}
+#ts:not(.wide) .sv{align-self:start;margin-top:-.1em}
+#ts:not(.wide) .sv span{font-size:clamp(80px,min(32cqh,60cqw),340px)}
+#ts:not(.wide) .tsgrid{grid-auto-rows:1fr}
+#ts.wide .sv span{font-size:clamp(80px,min(46cqh,24cqw),340px)}
+#ts.wide .tt{font-size:clamp(12px,min(3.4cqh,2.2cqw),19px)}
 @media (prefers-reduced-motion:reduce){#needle,#prog{transition:none}}
 </style>
 </head>
@@ -226,7 +289,7 @@ body[data-c="paper"] #dig.lcdon::after,body[data-c="paper"] main::after{display:
     <div class="dcell"><div class="k">ความเร็วสูงสุด</div><div class="dval seg"><span id="dMax"></span><small>km/h</small></div></div>
   </div>
 
-  <div class="colors">สีตัวเลข
+  <div class="colors">หน้ากาก
     <div class="sw" id="colorSw">
       <button type="button" data-c="cyan" style="--c:#2ee8e0" aria-label="สีฟ้า"></button>
       <button type="button" data-c="green" style="--c:#3dff7a" aria-label="สีเขียว"></button>
@@ -234,6 +297,7 @@ body[data-c="paper"] #dig.lcdon::after,body[data-c="paper"] main::after{display:
       <button type="button" data-c="yellow" style="--c:#ffd60a" aria-label="สีเหลือง"></button>
       <button type="button" data-c="lcd" class="lcdsw" aria-label="จอ LCD เครื่องมือสำรวจ"></button>
       <button type="button" data-c="paper" class="papersw" aria-label="จอขาว เครื่องมือสำรวจ"></button>
+      <button type="button" data-c="ts" class="tssw" aria-label="จอกล้อง Total Station"></button>
     </div>
   </div>
 
@@ -255,6 +319,32 @@ body[data-c="paper"] #dig.lcdon::after,body[data-c="paper"] main::after{display:
   <button id="resetBtn">รีเซ็ต</button>
 </div>
 
+<div id="ts" hidden>
+  <div class="tsdev">
+  <div class="tsscr">
+    <div class="tsbar"><span class="tstitle">CR-V Speed <em>Measure</em></span>
+      <span class="tsico"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 19a9 9 0 0 1 0-12.7M8 16a4.5 4.5 0 0 1 0-6.4"/><circle cx="12" cy="13" r="1.6"/></svg><b id="tsGps">--</b></span><span id="tSg">±-- m</span><span class="bat"><i id="tsBatL"></i></span><span id="tsBat"></span><span id="tsClk">--:--</span></span></div>
+    <div class="tsbody">
+      <div class="tsspd" id="tsSpd"><div class="th"><span>ความเร็ว</span><small id="tLim">Limit 90</small></div><div class="sv"><span id="tSp">0</span><em>km/h</em></div><div class="sbarw"><div class="sbar"><i id="tsBarI"></i><b id="tsLimM"></b></div><div class="sscale" id="tsScale"></div></div></div>
+      <div class="tsgrid">
+        <div class="tt"><div class="th"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>มุมแอซิมัท (Az)</span></div><div class="tv" id="tHz">--</div></div>
+        <div class="tt"><div class="th"><svg viewBox="0 0 24 24"><path d="M3 15l12-12 6 6-12 12z"/><path d="M7 11l2 2M10 8l2 2M13 5l2 2"/></svg><span>ระยะทาง</span></div><div class="tv" id="tHd">--</div></div>
+        <div class="tt"><div class="th"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>เวลาวิ่ง</span></div><div class="tv" id="tTm">--</div></div>
+        <div class="tt"><div class="th"><svg viewBox="0 0 24 24"><path d="M4 18h16"/><path d="M4 14l4-4 4 3 7-7"/></svg><span>เฉลี่ย</span></div><div class="tv" id="tAv">--</div></div>
+        <div class="tt"><div class="th"><svg viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M6 10l6-6 6 6"/></svg><span>สูงสุด</span></div><div class="tv" id="tMx">--</div></div>
+        <div class="tt"><div class="th"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span>พิกัด</span></div><div class="tv tpos"><span id="tLa">--</span><span id="tLo">--</span></div></div>
+      </div>
+    </div>
+    <div class="tsmsg" id="tsMsg"></div>
+    <div class="tskeys">
+      <button type="button" id="tF1"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>START</button>
+      <button type="button" id="tF2"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg>RESET</button>
+      <button type="button" id="tF3"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>LIMIT</button>
+      <button type="button" id="tF4"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>SKIN</button>
+    </div>
+  </div>
+  </div>
+</div>
 <script>
 (function(){
   const $=id=>document.getElementById(id);
@@ -382,7 +472,7 @@ body[data-c="paper"] #dig.lcdon::after,body[data-c="paper"] main::after{display:
       $('prog').style.stroke=over?'var(--over)':'var(--seg)';
       $('gSpeed').innerHTML=segSVG(String(spd)); $('gSpeed').classList.toggle('over',over);
     }
-    renderStats(); if(typeof updLcd==='function') updLcd();
+    renderStats(); if(typeof updLcd==='function') updLcd(); if(typeof updTs==='function') updTs();
   }
 
   let ac=null;
@@ -470,12 +560,49 @@ body[data-c="paper"] #dig.lcdon::after,body[data-c="paper"] main::after{display:
   try{setBig(localStorage.getItem('crv-big')==='1')}catch(e){setBig(false)}
   $('modeBtn').onclick=()=>setBig(!isBig());
   $('dial').onclick=()=>setBig(true); $('dSpeed').onclick=()=>{ if(Date.now()-swiped<400) return; if(isLand()||rot) nextColor(); else setBig(false);};
-  const COLORS=['cyan','green','red','yellow','lcd','paper'];
-  function setColor(c){ if(!COLORS.includes(c)) c='cyan'; document.body.dataset.c=c; document.body.classList.toggle('instr',c==='lcd'||c==='paper'); setTimeout(()=>render(lastKmh),0);
+  const COLORS=['cyan','green','red','yellow','lcd','paper','ts'];
+  function setColor(c){ if(!COLORS.includes(c)) c='cyan'; document.body.dataset.c=c; document.body.classList.toggle('instr',c==='lcd'||c==='paper'); document.body.classList.toggle('tsOn',c==='ts'); $('ts').hidden=c!=='ts'; setTimeout(()=>render(lastKmh),0);
     document.querySelectorAll('#colorSw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c));
     try{localStorage.setItem('crv-color',c)}catch(e){} }
   function nextColor(step=1){ setColor(COLORS[(COLORS.indexOf(document.body.dataset.c||'cyan')+step+COLORS.length)%COLORS.length]); showSkin(); }
-  const SKIN_NAME={cyan:'สีฟ้า',green:'สีเขียว',red:'สีแดง',yellow:'สีเหลือง',lcd:'จอ LCD เครื่องมือสำรวจ',paper:'จอขาว เครื่องมือสำรวจ'};
+
+  // ---- หน้ากากกล้อง Total Station ----
+  let batt=null;
+  try{ navigator.getBattery && navigator.getBattery().then(b=>{batt=b; b.addEventListener('levelchange',()=>updTs());}); }catch(e){}
+  const dms1=(v,p,n)=>{const a=Math.abs(v),d=Math.floor(a),m=Math.floor((a-d)*60),s=((a-d)*60-m)*60;
+    return `${d}°${String(m).padStart(2,'0')}'${s.toFixed(1).padStart(4,'0')}"${v>=0?p:n}`;};
+  function updTs(){
+    if(document.body.dataset.c!=='ts') return;
+    $('ts').classList.toggle('wide', isLand()||!!rot);
+    const spd=Math.round(shown), lim=+$('limitSel').value, over=lim>0&&shown>lim;
+    $('tSp').textContent=spd; $('tsSpd').classList.toggle('over',over); $('tsSpd').classList.toggle('over',over);
+    $('tLim').textContent= lim>0 ? `เตือนที่ ${lim} km/h` : 'ไม่เตือน';
+    if(head==null) $('tHz').textContent=`---°--'--"`;
+    else { const h=((head%360)+360)%360,d=Math.floor(h),m=Math.floor((h-d)*60),sec=Math.round(((h-d)*60-m)*60)%60;
+      $('tHz').textContent=`${String(d).padStart(3,'0')}°${String(m).padStart(2,'0')}'${String(sec).padStart(2,'0')}"`; }
+    $('tHd').textContent=(dist/1000).toFixed(3)+' km';
+    $('tTm').textContent=fmtTime(movingMs);
+    $('tAv').textContent=(movingMs>5000?Math.round((dist/1000)/(movingMs/3600000)):0)+' km/h';
+    $('tMx').textContent=Math.round(maxV)+' km/h';
+    $('tLa').textContent=fix?dms1(fix.lat,'N','S'):'--';
+    $('tLo').textContent=fix?dms1(fix.lon,'E','W'):'--';
+    $('tSg').textContent=fix?('±'+Math.round(fix.acc)+' m'):'±-- m';
+    const a=fix?fix.acc:999; $('tsGps').textContent=(a<=10?'ดี':a<=30?'พอใช้':watchId!=null?'อ่อน':'ปิด'); $('tsBarI').style.width=Math.min(100,shown/MAXV*100)+'%'; $('tsLimM').style.display=lim>0?'block':'none'; $('tsLimM').style.left=(lim/MAXV*100)+'%';
+    $('tsBat').textContent= batt ? `${Math.round(batt.level*100)}%` : ''; $('tsBatL').style.width= batt ? Math.round(batt.level*100)+'%' : '100%';
+    const n=new Date(); $('tsClk').textContent=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+    $('tF1').lastChild.textContent = watchId!=null ? 'STOP' : 'START';
+    $('tsMsg').textContent=$('msg').textContent; $('tsMsg').style.color=$('msg').classList.contains('err')?'#8a1d16':'';
+  }
+  (function(){let h='';for(let v=0;v<=MAXV;v+=10){const x=v/MAXV*100,mj=v%30===0;
+    h+=`<i class="${mj?'mj':''}" style="left:${x}%"></i>`; if(mj) h+=`<span style="left:${x}%">${v}</span>`;}
+    $('tsScale').innerHTML=h;})();
+  $('tF1').onclick=()=>{ $('startBtn').click(); updTs(); };
+  $('tF2').onclick=()=>{ $('resetBtn').click(); updTs(); };
+  $('tF3').onclick=()=>{ const sel=$('limitSel'); sel.selectedIndex=(sel.selectedIndex+1)%sel.options.length; sel.dispatchEvent(new Event('change')); updTs(); };
+  $('tF4').onclick=()=>{ swiped=Date.now(); nextColor(1); };
+  try{ new MutationObserver(()=>updTs()).observe($('msg'),{childList:true,characterData:true,subtree:true,attributes:true}); }catch(e){}
+  setInterval(()=>{ if(document.body.dataset.c==='ts') updTs(); },1000);
+  const SKIN_NAME={cyan:'สีฟ้า',green:'สีเขียว',red:'สีแดง',yellow:'สีเหลือง',lcd:'จอ LCD เครื่องมือสำรวจ',paper:'จอขาว เครื่องมือสำรวจ',ts:'จอกล้อง Total Station'};
   let toastT=null;
   function showSkin(){const t=$('skinToast'); t.textContent=SKIN_NAME[document.body.dataset.c]||''; t.style.setProperty('--tr',(rot||0)+'deg');
     t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1100);}
