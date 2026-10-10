@@ -289,6 +289,17 @@ body.mapOn #mp{background:#05080a}
 .nvrow button{font:700 .95rem var(--display);padding:0 12px;border-radius:10px;border:0;background:#1e6bff;color:#fff}
 .nvrow #nvClose{background:#eef1f4;color:#14181c}
 #nvRes{list-style:none;margin:8px 0 0;padding:0}
+.fvhead{display:flex;justify-content:space-between;align-items:center;margin:10px 2px 4px;font:600 .95rem var(--body)}
+#fvHere{font:700 .8rem var(--display);background:#eef4ff;color:#1e6bff;border:1px solid #c9dafd;border-radius:8px;padding:6px 8px}
+#fvList{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+#fvList li{display:flex;align-items:center;background:#fff8e1;border:1px solid #f1d27a;border-radius:20px;overflow:hidden}
+#fvList li .fg{font:600 .95rem var(--body);background:none;border:0;padding:8px 4px 8px 12px;color:#14181c}
+#fvList li .fg small{color:#7a6a3a;font-weight:400;margin-left:4px}
+#fvList li .fx{background:none;border:0;color:#a08a4a;padding:8px 10px 8px 6px;font-size:.9rem}
+#fvList li.muted{background:none;border:0;font:400 .85rem var(--body);color:#7a848d;padding:4px 2px}
+#nvRes li .rw{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+#nvRes li .st{flex:none;background:#fff8e1;border:1px solid #f1d27a;border-radius:8px;padding:4px 8px;font-size:.95rem}
+#nvPickFav{background:#fff8e1;border:1px solid #f1d27a;border-radius:8px;padding:7px 9px}
 #nvRes li{padding:10px 6px;border-bottom:1px solid #e7ebef;display:flex;flex-direction:column;gap:2px;cursor:pointer}
 #nvRes li b{font:600 1rem var(--body)} #nvRes li small{font:400 .8rem var(--body);color:#5c6670} #nvRes li.muted{color:#5c6670;cursor:default}
 .nvhint{margin:8px 2px 0;font:400 .78rem var(--body);color:#7a848d}
@@ -403,13 +414,15 @@ body.mapOn #mp{background:#05080a}
     <button type="button" id="mpSearchBtn">🔍 ไปที่ไหน</button>
     <div class="nvpanel" id="nvSearch" hidden>
       <div class="nvrow"><input id="nvQ" type="search" enterkeyhint="search" placeholder="ชื่อสถานที่ หรือพิกัด เช่น 16.44, 102.83" autocomplete="off"><button type="button" id="nvGo">ค้นหา</button><button type="button" id="nvClose" aria-label="ปิด">✕</button></div>
+      <div class="fvhead"><b>⭐ สถานที่ใช้บ่อย</b><button type="button" id="fvHere">＋ บันทึกตำแหน่งตอนนี้</button></div>
+      <ul id="fvList"></ul>
       <ul id="nvRes"></ul>
       <p class="nvhint">หรือกดค้างบนแผนที่เพื่อปักหมุดปลายทาง • ค้นหาโดย Nominatim/OpenStreetMap</p>
     </div>
     <div class="nvban" id="nvBan" hidden><svg id="nvArrow" viewBox="0 0 40 40"><path class="ar" d="M20 4 L32 18 H24 V36 H16 V18 H8Z"/><path class="fl" d="M12 36 V6 H30 L25 12 L30 18 H14"/></svg>
       <div class="nvt"><b id="nvDist">–</b><span id="nvTxt"></span><small id="nvRoad"></small></div><button type="button" id="nvVoice" aria-label="เสียงนำทาง">🔊</button></div>
     <div class="nvfoot" id="nvFoot" hidden><span id="nvRem"></span><button type="button" id="nvStop">✕ เลิกนำทาง</button></div>
-    <div class="nvpick" id="nvPick" hidden><span>📍 <span id="nvPickTxt"></span></span><button type="button" id="nvPickGo">นำทางไปที่นี่</button><button type="button" id="nvPickNo" aria-label="ยกเลิก">✕</button></div>
+    <div class="nvpick" id="nvPick" hidden><span>📍 <span id="nvPickTxt"></span></span><button type="button" id="nvPickFav" aria-label="บันทึกเป็นสถานที่ใช้บ่อย">⭐</button><button type="button" id="nvPickGo">นำทางไปที่นี่</button><button type="button" id="nvPickNo" aria-label="ยกเลิก">✕</button></div>
   </div>
 </div>
 <div id="ts" hidden>
@@ -860,9 +873,22 @@ body.mapOn #mp{background:#05080a}
   }
   function listRes(arr){ const ul=$('nvRes'); ul.innerHTML='';
     arr.forEach(x=>{ const li=document.createElement('li'); const d=fix?' • '+fmtD(hav(fix,x)):'';
-      li.innerHTML=`<b></b><small></small>`; li.querySelector('b').textContent=x.name; li.querySelector('small').textContent=(x.sub||'').slice(0,90)+d;
+      li.innerHTML=`<div class="rw"><b></b><button type="button" class="st" aria-label="บันทึกเป็นสถานที่ใช้บ่อย">☆</button></div><small></small>`; li.querySelector('b').textContent=x.name; li.querySelector('small').textContent=(x.sub||'').slice(0,90)+d;
+      li.querySelector('.st').onclick=e=>{ e.stopPropagation(); if(addFav(x.lat,x.lon,x.name)) e.target.textContent='⭐'; };
       li.onclick=()=>{ closeSearch(); routeTo({lat:x.lat,lon:x.lon,name:x.name}); }; ul.appendChild(li); }); }
-  function openSearch(){ $('nvSearch').hidden=false; setTimeout(()=>$('nvQ').focus(),50); }
+  // ---- สถานที่ใช้บ่อย (เก็บในเครื่องนี้) ----
+  const getFavs=()=>ls.get('crv-favs',[]);
+  function addFav(lat,lon,def){ const n=(prompt('ตั้งชื่อสถานที่ (เช่น บ้าน, ที่ทำงาน)',def||'')||'').trim(); if(!n) return false;
+    const f=getFavs().filter(x=>x.name!==n); f.unshift({name:n,lat:+lat,lon:+lon}); ls.set('crv-favs',f.slice(0,30)); renderFavs(); $('mpMsg').textContent=`บันทึก "${n}" แล้ว ⭐`; return true; }
+  function renderFavs(){ const ul=$('fvList'), f=getFavs(); ul.innerHTML='';
+    if(!f.length){ ul.innerHTML='<li class="muted">ยังไม่มี — กด ☆ ที่ผลค้นหา, ⭐ ตอนปักหมุด หรือบันทึกตำแหน่งตอนนี้</li>'; return; }
+    f.forEach((x,i)=>{ const li=document.createElement('li'); li.innerHTML='<button type="button" class="fg"><span></span><small></small></button><button type="button" class="fx" aria-label="ลบ">✕</button>';
+      li.querySelector('span').textContent=x.name; li.querySelector('small').textContent=fix?fmtD(hav(fix,x)):'';
+      li.querySelector('.fg').onclick=()=>{ closeSearch(); routeTo({lat:x.lat,lon:x.lon,name:x.name}); };
+      li.querySelector('.fx').onclick=()=>{ if(confirm(`ลบ "${x.name}" ออกจากสถานที่ใช้บ่อย?`)){ const g=getFavs(); g.splice(i,1); ls.set('crv-favs',g); renderFavs(); } };
+      ul.appendChild(li); }); }
+  $('fvHere').onclick=()=>{ if(!fix){ alert('ยังไม่มีสัญญาณ GPS'); return; } addFav(fix.lat,fix.lon,''); };
+  function openSearch(){ renderFavs(); $('nvSearch').hidden=false; setTimeout(()=>$('nvQ').focus(),50); }
   function closeSearch(){ $('nvSearch').hidden=true; $('nvQ').blur(); }
   $('mpSearchBtn').onclick=openSearch; $('nvClose').onclick=closeSearch; $('nvGo').onclick=doSearch;
   $('nvQ').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); doSearch(); } });
@@ -872,6 +898,7 @@ body.mapOn #mp{background:#05080a}
   // กดค้างบนแผนที่ = ปักหมุดปลายทาง
   function showPick(ll){ pick={lat:ll.lat,lon:ll.lng}; $('nvPickTxt').textContent=`${pick.lat.toFixed(5)}, ${pick.lon.toFixed(5)}`+(fix?` • ${fmtD(hav(fix,pick))}`:''); $('nvPick').hidden=false; }
   $('nvPickGo').onclick=()=>{ $('nvPick').hidden=true; if(pick) routeTo({...pick,name:'จุดที่ปักหมุด'}); };
+  $('nvPickFav').onclick=()=>{ if(pick && addFav(pick.lat,pick.lon,'')) $('nvPick').hidden=true; };
   $('nvPickNo').onclick=()=>{ $('nvPick').hidden=true; pick=null; };
   function hookMapNav(){
     map.on('touchstart',e=>{ clearTimeout(lpT); if(e.originalEvent.touches.length!==1) return; const ll=e.lngLat; lpT=setTimeout(()=>showPick(ll),650); });
