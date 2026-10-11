@@ -92,6 +92,15 @@ button{font:700 1.1rem var(--display);border-radius:14px;border:1px solid var(--
 button.primary{background:var(--seg);border-color:var(--seg);color:#06201f}
 button.primary.running{background:transparent;color:var(--seg)}
 button:focus-visible{outline:3px solid var(--seg);outline-offset:2px}
+/* จอเข็ม: ปุ่มเริ่ม/หยุด และรีเซ็ต เป็นจุดกลมเล็ก ๆ */
+body:not(.big):not(.instr):not(.tsOn):not(.mapOn) .controls{display:flex;justify-content:center;gap:22px;padding-block:6px 12px}
+body:not(.big):not(.instr):not(.tsOn):not(.mapOn) .controls button{width:46px;height:46px;padding:0;border-radius:50%;font-size:0;line-height:0;letter-spacing:0;display:flex;align-items:center;justify-content:center;flex:none}
+body:not(.big):not(.instr):not(.tsOn):not(.mapOn) .controls button::before{font:700 18px/1 var(--body);content:"▶";color:#06201f;padding-left:3px}
+body:not(.big):not(.instr):not(.tsOn):not(.mapOn) #startBtn.running{background:transparent;border:2px solid var(--seg)}
+body:not(.big):not(.instr):not(.tsOn):not(.mapOn) #startBtn.running::before{content:"";display:block;width:14px;height:14px;border-radius:3px;background:var(--seg);padding:0}
+body:not(.big):not(.instr):not(.tsOn):not(.mapOn) #resetBtn::before{content:"↺";color:var(--fg);font-size:22px;padding:0}
+body:not(.big):not(.instr):not(.tsOn):not(.mapOn) .dial{max-width:min(440px,max(200px,calc(100dvh - 420px)))}
+body:not(.big):not(.instr):not(.tsOn):not(.mapOn):has(#sats:not([hidden])) .dial{max-width:min(440px,max(180px,calc(100dvh - 560px)))}
 /* แนวนอน (มือถือ): ตัวเลขความเร็วดิจิทัลเต็มจออย่างเดียว */
 @media (orientation:landscape) and (max-height:600px){
   header,.dial,.dstats,.sats,.limit,.msg,.controls{display:none!important}
