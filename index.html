@@ -1237,7 +1237,12 @@ body.rot #skinDots{display:none!important}
   window.addEventListener('online',()=>flush(false));
   // เปิด GPS อัตโนมัติเมื่อเปิดแอป
   start();
-  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+  if('serviceWorker' in navigator){
+    const hadSW=!!navigator.serviceWorker.controller; let reloaded=false;
+    navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{ try{r.update()}catch(e){} }).catch(()=>{});
+    // มีเวอร์ชันใหม่ → โหลดหน้าใหม่ 1 ครั้งให้ใช้ของใหม่ทันที (ไม่รีโหลดระหว่างกำลังวัด)
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(hadSW && !reloaded && !(document.getElementById('startBtn')||{classList:{contains(){return false}}}).classList.contains('running')){ reloaded=true; location.reload(); } });
+  }
 })();
 </script>
 <div id="skinToast" aria-live="polite"></div>

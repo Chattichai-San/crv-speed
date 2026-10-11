@@ -1,9 +1,9 @@
-// v3: network-first for this app's own files only (map tiles/CDN go straight to the network, not cached)
-const C='crv-speed-v3';
+// v4: network-first for this app's own files; always revalidate with the server (no stale HTTP cache)
+const C='crv-speed-v4';
 const FILES=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(FILES)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim();});
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET' || new URL(e.request.url).origin!==self.location.origin) return;
-  e.respondWith(fetch(e.request).then(r=>{const cp=r.clone();caches.open(C).then(c=>c.put(e.request,cp));return r;}).catch(()=>caches.match(e.request)));
+  e.respondWith(fetch(e.request.url,{cache:'no-cache'}).then(r=>{ if(r.ok){const cp=r.clone();caches.open(C).then(c=>c.put(e.request,cp));} return r;}).catch(()=>caches.match(e.request,{ignoreSearch:true})));
 });
