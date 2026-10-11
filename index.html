@@ -658,6 +658,19 @@ body.rot #skinDots{display:none!important}
   // ต้องมีรหัสบันทึกทริป (ตั้งไว้ใน Apps Script) — ใส่ครั้งเดียวต่อเครื่อง คนอื่นที่มีลิงก์จึงบันทึกไม่ได้
   let stickyUntil=0;
   function note(t,err){$('msg').textContent=t;$('msg').classList.toggle('err',!!err);stickyUntil=err?Infinity:Date.now()+8000;}
+  // ส่งข้อมูลไป Apps Script: ในแอป Android ส่งผ่านตัวแอปโดยตรง (ไม่ติด CORS), ในเบราว์เซอร์ใช้ fetch
+  const nativeCb={}; let nativeId=0;
+  window.__crvCb=function(id,text,status){ const f=nativeCb[id]; if(f){ delete nativeCb[id]; f(text,status); } };
+  async function postLog(obj){
+    const body=JSON.stringify(obj);
+    if(window.CRVNative && CRVNative.postAsync){
+      const text=await new Promise((res,rej)=>{ const id=++nativeId; const tm=setTimeout(()=>{ delete nativeCb[id]; rej(new Error('timeout')); },45000);
+        nativeCb[id]=(t,st)=>{ clearTimeout(tm); if(st>0) res(t); else rej(new Error('net: '+t)); }; CRVNative.postAsync(id,LOG_URL,body); });
+      try{ return JSON.parse(text); }catch(e){ throw new Error('bad reply: '+String(text).slice(0,80)); }
+    }
+    const r=await fetch(LOG_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body});
+    const t=await r.text(); try{ return JSON.parse(t); }catch(e){ throw new Error('bad reply '+r.status+': '+t.slice(0,80)); }
+  }
   let flushing=false;
   async function flush(ask){
     const q=ls.get('crv-queue',[]); if(!q.length||flushing) return;
@@ -668,8 +681,7 @@ body.rot #skinDots{display:none!important}
     for(const t of q){
       if(bad){left.push(t);continue;}
       try{
-        const r=await fetch(LOG_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},t,{key}))});
-        const j=await r.json();
+        const j=await postLog(Object.assign({},t,{key}));
         if(j&&j.error==='key'){bad=true;left.push(t);}
       }catch(e){ left.push(t); }
     }
@@ -1122,8 +1134,7 @@ body.rot #skinDots{display:none!important}
   // ---- ประวัติการเดินทาง (อ่านจาก Google Sheet/Drive ผ่านสคริปต์ CR-V Trip Log) ----
   let hsLayer=false;
   async function api(body){ let key=ls.get('crv-key',''); if(!key){ key=(prompt('ใส่รหัสผ่าน (รหัสเดียวกับรหัสบันทึกทริป)')||'').trim(); if(!key) throw new Error('nokey'); ls.set('crv-key',key); }
-    const r=await fetch(LOG_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({key},body))});
-    const j=await r.json(); if(j.error==='key'){ ls.del('crv-key'); throw new Error('key'); } if(!j.ok) throw new Error(j.error||'x'); return j; }
+    const j=await postLog(Object.assign({key},body)); if(j.error==='key'){ ls.del('crv-key'); throw new Error('key'); } if(!j.ok) throw new Error(j.error||'x'); return j; }
   const thDate=iso=>{ const d=new Date(iso); return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'})+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
   async function openHist(){ $('hsCard').hidden=true; $('hsPanel').hidden=false; const ul=$('hsList'); ul.innerHTML='<li class="muted">กำลังโหลด…</li>';
     try{ const j=await api({action:'list',n:30}); ul.innerHTML='';
@@ -1132,7 +1143,7 @@ body.rot #skinDots{display:none!important}
         li.querySelector('b').textContent=`${thDate(t.start)} • ${t.distKm} กม.`;
         li.querySelector('small').textContent=`${t.kind||''} • เฉลี่ย ${t.avg} km/h • สูงสุด ${t.max} km/h`+(t.url?' • มีเส้นทาง':' • ไม่มีเส้นทาง');
         li.onclick=()=>showTrip(t); ul.appendChild(li); });
-    }catch(e){ ul.innerHTML=`<li class="muted">${e.message==='key'?'รหัสไม่ถูกต้อง — กดประวัติอีกครั้งเพื่อใส่ใหม่':e.message==='nokey'?'ต้องใส่รหัสก่อน':'โหลดไม่ได้ — ตรวจสอบอินเทอร์เน็ต หรือสคริปต์ยังไม่ได้อัปเดต'}</li>`; } }
+    }catch(e){ ul.innerHTML=`<li class="muted">${e.message==='key'?'รหัสไม่ถูกต้อง — กดประวัติอีกครั้งเพื่อใส่ใหม่':e.message==='nokey'?'ต้องใส่รหัสก่อน':('โหลดไม่ได้ — ตรวจสอบอินเทอร์เน็ต หรือสคริปต์ยังไม่ได้อัปเดต <br><small>('+String(e.message||e).replace(/[<>&]/g,'')+')</small>')}</li>`; } }
   async function showTrip(t){ $('hsPanel').hidden=true; $('hsCard').hidden=false; $('hsTitle').textContent=`${thDate(t.start)} • ${t.distKm} กม.`;
     $('hsInfo').textContent=`เวลาวิ่ง ${t.movingMin} นาที • เฉลี่ย ${t.avg} • สูงสุด ${t.max} km/h`;
     const a=$('hsKml'); if(t.url){ a.href=t.url; a.classList.remove('off'); } else { a.removeAttribute('href'); a.classList.add('off'); }
