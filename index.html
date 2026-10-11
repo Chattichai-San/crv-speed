@@ -313,6 +313,8 @@ body.mapOn #mp{background:#05080a}
 .mpbar{position:absolute;left:58px;right:10px;top:10px;z-index:500;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .mpbar>*{pointer-events:auto}
 .mpchips button span{white-space:nowrap}
+#mpHistExit{font:700 .85rem var(--display);padding:8px 14px;border-radius:22px;border:1px solid #c25e00;background:#ff8a00;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#mp.nav #mpHistExit{display:none}
 .mprow1{display:flex;gap:8px;align-items:stretch}
 .mprow1 #mpSearchBtn{flex:1;min-width:0}
 .mprow1 #mpTraffic{flex:none;width:44px;height:42px;border-radius:22px;padding:0;font-size:1.2rem}
@@ -338,6 +340,13 @@ body.mapOn #mp{background:#05080a}
 #hsX{background:#eef1f4;color:#14181c;font-size:1rem;border:0;border-radius:8px;padding:6px 10px}
 #hsBack{font:700 .95rem var(--display);background:#eef1f4;border:0;border-radius:12px;color:#14181c}
 #mp:has(.nvprev:not([hidden])) .nvfoot{display:none}
+.nvprev{position:absolute;left:10px;right:10px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 62px);z-index:530;background:#fff;color:#14181c;border-radius:16px;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.nvprev .pv1{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nvprev .pv1 b{font:700 1.05rem var(--display)}
+.nvprev .pv2{font:500 .88rem var(--body);color:#5c6670;margin:4px 0 10px}
+.nvprev .pv3{display:grid;grid-template-columns:1fr auto;gap:8px}
+.nvprev #hsBack{padding:10px 14px}
+#mp:has(#hsCard:not([hidden])) .maplibregl-ctrl-bottom-right{display:none}
 .nvpanel{position:absolute;inset:0 0 auto 0;z-index:700;background:#fff;color:#14181c;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3);max-height:75%;overflow:auto;border-radius:0 0 14px 14px}
 .nvrow{display:flex;gap:6px}
 .nvrow input{flex:1;min-width:0;background:#fff;color:#14181c;font:500 1rem var(--body);padding:10px 12px;border:2px solid #1e6bff;border-radius:10px;outline:none}
@@ -524,7 +533,7 @@ body.rot #skinDots{display:none!important}
     <div class="mpbtns"><button type="button" id="mpGo">เริ่ม</button><button type="button" id="mpRst">รีเซ็ต</button><button type="button" id="mpSkin">◀ หน้าปัด</button></div>
     <div class="mpmsg" id="mpMsg"></div>
     <div class="mpbar"><div class="mprow1"><button type="button" id="mpSearchBtn">🔍 ไปที่ไหน</button><button type="button" id="mpTraffic" aria-label="แสดงสภาพจราจร">🚦</button></div>
-      <div class="mpchips"><button type="button" id="mpHistBtn">🕘 ประวัติ</button><button type="button" id="mpHead">🧭<span> ตามรถ</span></button><button type="button" id="mpSnap">🛣<span> เกาะถนน</span></button></div></div>
+      <div class="mpchips"><button type="button" id="mpHistExit" hidden>↩ กลับหน้าปกติ</button><button type="button" id="mpHistBtn">🕘 ประวัติ</button><button type="button" id="mpHead">🧭<span> ตามรถ</span></button><button type="button" id="mpSnap">🛣<span> เกาะถนน</span></button></div></div>
     <div class="nvpanel" id="hsPanel" hidden>
       <div class="fvhead"><b>🕘 ประวัติการเดินทาง</b><button type="button" id="hsClose" aria-label="ปิด">✕</button></div>
       <ul id="hsList"></ul>
@@ -1152,15 +1161,18 @@ body.rot #skinDots{display:none!important}
       const data={type:'Feature',properties:{},geometry:{type:'LineString',coordinates:c}};
       if(!map.getSource('hist')){ map.addSource('hist',{type:'geojson',data}); map.addLayer({id:'hist-c',type:'line',source:'hist',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#7a2e00','line-width':10}});
         map.addLayer({id:'hist',type:'line',source:'hist',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#ff8a00','line-width':6}}); } else map.getSource('hist').setData(data);
-      follow=false; $('mpFollow').hidden=false;
+      follow=false; $('mpFollow').hidden=false; histMode(true);
       const bb=c.reduce((b,p)=>[[Math.min(b[0][0],p[0]),Math.min(b[0][1],p[1])],[Math.max(b[1][0],p[0]),Math.max(b[1][1],p[1])]],[[180,90],[-180,-90]]);
       (map.setPadding({top:0,bottom:0,left:0,right:0}),map).fitBounds(bb,{padding:{top:40,bottom:160,left:30,right:30},bearing:0,pitch:0,duration:600});
     }catch(e){ $('hsInfo').textContent+=' — โหลดเส้นทางไม่ได้'; } }
+  function histMode(on){ $('mpHistExit').hidden=!on; $('mpHistBtn').hidden=on; }
+  function exitHist(){ $('hsCard').hidden=true; $('hsPanel').hidden=true; clearHist(); histMode(false); follow=true; navZoom=true; $('mpFollow').hidden=true; updMap(); }
+  $('mpHistExit').onclick=exitHist;
   function clearHist(){ if(map&&map.getSource&&map.getSource('hist')) map.getSource('hist').setData({type:'FeatureCollection',features:[]}); }
   $('mpHistBtn').onclick=()=>{ if(map) openHist(); };
   $('hsClose').onclick=()=>{ $('hsPanel').hidden=true; };
   $('hsBack').onclick=()=>openHist();
-  $('hsX').onclick=()=>{ $('hsCard').hidden=true; clearHist(); follow=true; $('mpFollow').hidden=true; updMap(); };
+  $('hsX').onclick=exitHist;
 
   // ---- สภาพจราจร (TomTom) — key เก็บในเครื่องนี้เท่านั้น ไม่อยู่ในโค้ด ----
   // TomTom key ไม่อยู่ในโค้ด: ขอจากสคริปต์ CR-V Trip Log ด้วยรหัสผ่านของเจ้าของ แล้วจำไว้ในเครื่อง
