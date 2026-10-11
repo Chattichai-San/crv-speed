@@ -550,7 +550,7 @@ body.rot #skinDots{display:none!important}
     <div class="nvpanel" id="hsPanel" hidden>
       <div class="fvhead"><b>🕘 ประวัติการเดินทาง</b><button type="button" id="hsClose" aria-label="ปิด">✕</button></div>
       <ul id="hsList"></ul>
-      <p class="nvhint">เก็บไว้ใน Google Drive โฟลเดอร์ "CR-V เส้นทางการเดินทาง" (ไฟล์ KML เปิดใน Google Earth / My Maps ได้)<br>หน้าเว็บรุ่น 2026-10-11 17:40</p>
+      <p class="nvhint">เก็บไว้ใน Google Drive โฟลเดอร์ "CR-V เส้นทางการเดินทาง" (ไฟล์ KML เปิดใน Google Earth / My Maps ได้)<br>หน้าเว็บรุ่น 2026-10-11 19:00</p>
     </div>
     <div class="nvprev" id="hsCard" hidden><div class="pv1"><b id="hsTitle"></b><button type="button" id="hsX" aria-label="ปิด">✕</button></div>
       <div class="hsgrid" id="hsInfo"></div><div class="hsnote" id="hsNote"></div>
@@ -1303,6 +1303,15 @@ body.rot #skinDots{display:none!important}
   window.addEventListener('online',()=>flush(false));
   // เปิด GPS อัตโนมัติเมื่อเปิดแอป
   start();
+  // ตรวจหน้าเว็บรุ่นใหม่: ตอนกลับมาเปิดแอป และทุก 10 นาที — ถ้ามีรุ่นใหม่และไม่ได้กำลังวัดอยู่ จะโหลดใหม่เอง
+  const PAGE_VER='2026-10-11 19:00';
+  window.crvCheckUpdate=async function(){ try{
+    const run=(document.getElementById('startBtn')||{classList:{contains(){return false}}}).classList.contains('running') && (lastKmh>0 || dist>0);   // กำลังมีทริปอยู่ → ไม่รีโหลด
+    const t=await (await fetch('index.html?chk='+Date.now(),{cache:'no-store'})).text();
+    const m=t.match(/const PAGE_VER='([^']+)'/); if(m && m[1]!==PAGE_VER && !run) location.reload();
+  }catch(e){} };
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') window.crvCheckUpdate(); });
+  setInterval(()=>window.crvCheckUpdate(),600000);
   if('serviceWorker' in navigator){
     const hadSW=!!navigator.serviceWorker.controller; let reloaded=false;
     navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{ try{r.update()}catch(e){} }).catch(()=>{});
