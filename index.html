@@ -81,6 +81,9 @@ body.instr:not(.rot) .sats .sh,body.instr:not(.rot) .sats .sc small,body.instr:n
 body.instr:not(.rot) .sats .sh{border-right-color:rgba(var(--inkrgb),.3)}
 body.instr:not(.rot) .sats .sc b,body.instr:not(.rot) .sats .sh b{color:var(--ink);text-shadow:none}
 body.instr:not(.rot) .sats .sh svg{stroke:var(--ink);filter:none}
+.dunit::before,.mpu::before,.dial .center .u::before{content:""}
+body.dr .dunit::before,body.dr .mpu::before,body.dr .dial .center .u::before{content:"≈ "}
+body.dr .seg .on{opacity:.62}
 .limit{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9rem;color:var(--muted)}
 .limit select{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:600 1rem var(--body)}
 .msg{text-align:center;font-size:.9rem;color:var(--muted);min-height:1.3em}
@@ -335,8 +338,18 @@ body.mapOn #mp{background:#05080a}
 #hsList{list-style:none;margin:6px 0 0;padding:0}
 #hsList li{padding:10px 6px;border-bottom:1px solid #e7ebef;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 #hsList li b{font:600 1rem var(--body)} #hsList li small{font:400 .82rem var(--body);color:#5c6670} #hsList li.muted{cursor:default;color:#5c6670}
-#hsKml{display:flex;align-items:center;justify-content:center;font:700 .95rem var(--display);background:#1e6bff;color:#fff;border-radius:12px;padding:12px;text-decoration:none}
-#hsKml.off{background:#c9d3de;pointer-events:none}
+body.mapOn #mp.histOn{grid-template-rows:1fr!important;grid-template-columns:1fr!important}
+#mp.histOn .mpspd,#mp.histOn .mpbtns,#mp.histOn .mprow1,#mp.histOn #mpHead,#mp.histOn #mpSnap,#mp.histOn #mpFollow,#mp.histOn .mpmsg,#mp.histOn .nvfoot{display:none!important}
+body.mapOn:has(#mp.histOn) #skinDots{display:none!important}
+#mp.histOn .mpbar{top:max(10px,env(safe-area-inset-top))}
+#mp.histOn .nvprev{bottom:max(12px,env(safe-area-inset-bottom))}
+.hsgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 8px}
+.hsgrid div{background:#f2f5f8;border-radius:10px;padding:8px 6px;text-align:center;min-width:0}
+.hsgrid small{display:block;font:500 .72rem var(--body);color:#5c6670}
+.hsgrid b{display:block;font:700 1.15rem var(--display);color:#14181c;white-space:nowrap}
+.hsgrid b i{font:500 .72rem var(--display);font-style:normal;color:#5c6670;margin-left:2px}
+.hsnote{font:500 .8rem var(--body);color:#5c6670;text-align:center;min-height:1em;margin-bottom:8px}
+.nvprev #hsHome{font:700 .95rem var(--display);background:#ff8a00;color:#fff;border:0;border-radius:12px;padding:10px 14px}
 #hsX{background:#eef1f4;color:#14181c;font-size:1rem;border:0;border-radius:8px;padding:6px 10px}
 #hsBack{font:700 .95rem var(--display);background:#eef1f4;border:0;border-radius:12px;color:#14181c}
 #mp:has(.nvprev:not([hidden])) .nvfoot{display:none}
@@ -344,7 +357,7 @@ body.mapOn #mp{background:#05080a}
 .nvprev .pv1{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .nvprev .pv1 b{font:700 1.05rem var(--display)}
 .nvprev .pv2{font:500 .88rem var(--body);color:#5c6670;margin:4px 0 10px}
-.nvprev .pv3{display:grid;grid-template-columns:1fr auto;gap:8px}
+.nvprev .pv3{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .nvprev #hsBack{padding:10px 14px}
 #mp:has(#hsCard:not([hidden])) .maplibregl-ctrl-bottom-right{display:none}
 .nvpanel{position:absolute;inset:0 0 auto 0;z-index:700;background:#fff;color:#14181c;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3);max-height:75%;overflow:auto;border-radius:0 0 14px 14px}
@@ -537,10 +550,11 @@ body.rot #skinDots{display:none!important}
     <div class="nvpanel" id="hsPanel" hidden>
       <div class="fvhead"><b>🕘 ประวัติการเดินทาง</b><button type="button" id="hsClose" aria-label="ปิด">✕</button></div>
       <ul id="hsList"></ul>
-      <p class="nvhint">เก็บไว้ใน Google Drive โฟลเดอร์ "CR-V เส้นทางการเดินทาง" (ไฟล์ KML เปิดใน Google Earth / My Maps ได้)<br>หน้าเว็บรุ่น 2026-10-11 10:00</p>
+      <p class="nvhint">เก็บไว้ใน Google Drive โฟลเดอร์ "CR-V เส้นทางการเดินทาง" (ไฟล์ KML เปิดใน Google Earth / My Maps ได้)<br>หน้าเว็บรุ่น 2026-10-11 17:40</p>
     </div>
     <div class="nvprev" id="hsCard" hidden><div class="pv1"><b id="hsTitle"></b><button type="button" id="hsX" aria-label="ปิด">✕</button></div>
-      <div class="pv2" id="hsInfo"></div><div class="pv3"><a id="hsKml" target="_blank" rel="noopener">เปิดไฟล์ใน Google Drive</a><button type="button" id="hsBack">◀ รายการ</button></div></div>
+      <div class="hsgrid" id="hsInfo"></div><div class="hsnote" id="hsNote"></div>
+      <div class="pv3"><button type="button" id="hsBack">◀ รายการทริป</button><button type="button" id="hsHome">↩ กลับหน้าปกติ</button></div></div>
     <div class="nvpanel" id="nvSearch" hidden>
       <div class="nvrow"><input id="nvQ" type="search" enterkeyhint="search" placeholder="ชื่อสถานที่ หรือพิกัด เช่น 16.44, 102.83" autocomplete="off"><button type="button" id="nvGo">ค้นหา</button><button type="button" id="nvClose" aria-label="ปิด">✕</button></div>
       <div class="fvhead"><b>⭐ สถานที่ใช้บ่อย</b><button type="button" id="fvHere">＋ บันทึกตำแหน่งตอนนี้</button></div>
@@ -647,6 +661,19 @@ body.rot #skinDots{display:none!important}
 
   let watchId=null, wake=null, timer=null;
   let last=null, dist=0, maxV=0, movingMs=0, shown=0, beeped=false, lastKmh=0, buf=[];
+  /* ---- อุโมงค์/ไม่มีสัญญาณ: ประคองความเร็ว (dead reckoning แบบความเร็วคงที่) ----
+     good = จุดดีล่าสุด; ถ้าสัญญาณหาย ใช้ความเร็วล่าสุดต่อไป 60 วิ แล้วค่อย ๆ ลดลงถึง 0 ใน 30 วิ
+     พอได้สัญญาณกลับมา: เติมระยะทาง/เวลาช่วงที่หาย (เส้นตรงจุดเข้า→จุดออก) และเริ่มความเร็วจากค่าเฉลี่ยช่วงนั้น ไม่เริ่มจาก 0 */
+  const COAST_HOLD=60000, COAST_FADE=30000, COAST_MIN=15;
+  let good=null, coasting=false;
+  function coastKmh(){ if(!good||good.kmh<COAST_MIN) return 0; const g=Date.now()-good.wall;
+    if(g<=COAST_HOLD) return good.kmh; if(g>=COAST_HOLD+COAST_FADE) return 0; return good.kmh*(1-(g-COAST_HOLD)/COAST_FADE); }
+  function coastTick(){
+    const v=coastKmh(); if(v<=0){ if(coasting){ coasting=false; document.body.classList.remove('dr'); } return false; }
+    if(!coasting){ coasting=true; document.body.classList.add('dr'); }
+    if(Date.now()>stickyUntil){ $('msg').textContent='ไม่มีสัญญาณดาวเทียม (อุโมงค์?) — แสดงความเร็วโดยประมาณ ≈'; $('msg').classList.remove('err'); }
+    lastKmh=v; render(v); return true; }
+  setInterval(()=>{ if(watchId!=null && good && Date.now()-good.wall>2500) coastTick(); },1000);
   // ---- บันทึกทริป → Google Sheet + Calendar (ผ่านสคริปต์ CR-V Trip Log) ----
   const LOG_URL='https://script.google.com/macros/s/AKfycbxMs2Os-kUZAo7whJYZVRBVfbcwmwzIbVEyorfTfVhuhSz_bX3fSQWsuciE3H5LMa-yDA/exec';
   let tripStart=null, lastMove=null, tripSaved=false;
@@ -698,7 +725,7 @@ body.rot #skinDots{display:none!important}
     if(bad){ ls.del('crv-key'); note('รหัสบันทึกทริปไม่ถูกต้อง — แตะตรงนี้เพื่อใส่ใหม่',true); }
     else note(left.length ? `ยังส่งไม่ได้ (ไม่มีเน็ต?) — เก็บทริปไว้ ${left.length} รายการ จะส่งให้อีกครั้งอัตโนมัติ` : 'บันทึกทริปลงปฏิทินและชีตแล้ว ✓');
   }
-  function resetTrip(){dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur'); trackPts=[]; if(trk) trk.setLatLngs([]);}
+  function resetTrip(){good=null;coasting=false;document.body.classList.remove('dr');dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur'); trackPts=[]; if(trk) trk.setLatLngs([]);}
   const isBig=()=>document.body.classList.contains('big');
   const landMQ=matchMedia('(orientation:landscape) and (max-height:600px)'), isLand=()=>landMQ.matches;
   let rot=0;
@@ -772,8 +799,17 @@ body.rot #skinDots{display:none!important}
     anyPos=cur; if(map) updMap(); if(nav&&nav.active&&acc>15) updNav(); if(pendDest){ const d=pendDest; pendDest=null; routeTo(d); }
     let kmh=0;
     if(acc>15){                                                       // ใช้เฉพาะสัญญาณ GPS ที่แม่นพอ
+      if(good && coastTick()) return;                                 // เพิ่งวิ่งอยู่ → ประคองความเร็วต่อ
       if(free) $('msg').textContent='สัญญาณ GPS ยังไม่แม่น (ในอาคาร?) — ความเร็วแสดง 0 จนกว่าจะจับดาวเทียมได้';
       last=null; buf=[]; lastKmh=0; render(0); return;
+    }
+    if(good && (coasting || now-good.t>3000)){                       // สัญญาณกลับมาหลังหายไป
+      const gdt=(now-good.t)/1000, gd=hav(good,cur), vb=gd/gdt*3.6;
+      if(gdt>3 && vb<=200){
+        if(vb>=5){ dist+=gd; movingMs+=now-good.t; }                  // เติมระยะทางช่วงที่ไม่มีสัญญาณ
+        buf=[vb,vb]; lastKmh=vb; last={lat:cur.lat,lon:cur.lon,t:now,acc:acc};
+      }
+      if(coasting){ coasting=false; document.body.classList.remove('dr'); if(free) $('msg').textContent=''; }
     }
     if(c.speed!=null && !isNaN(c.speed)){
       kmh=c.speed*3.6;                                                // ความเร็วจากดาวเทียม (Doppler)
@@ -797,7 +833,7 @@ body.rot #skinDots{display:none!important}
     fix=cur;
     if(kmh>0){ const lp=trackPts[trackPts.length-1]; if(!lp || hav(lp,cur)>5) trackPts.push({lat:cur.lat,lon:cur.lon,t:now,acc:acc,s:null}); if(trackPts.length>8000) trackPts.shift(); }
     if(map){ updMap(); if(kmh>0) snapRoad(); if(nav) updNav(); }
-    lastKmh=kmh; last=cur;
+    lastKmh=kmh; last=cur; good={lat:cur.lat,lon:cur.lon,t:now,wall:Date.now(),kmh:kmh};
     render(kmh);
   }
 
@@ -819,7 +855,7 @@ body.rot #skinDots{display:none!important}
   }
   function stop(){
     if(watchId!=null) navigator.geolocation.clearWatch(watchId);
-    watchId=null; clearInterval(timer); last=null; lastKmh=0; buf=[];
+    watchId=null; clearInterval(timer); last=null; lastKmh=0; buf=[]; good=null; coasting=false; document.body.classList.remove('dr');
     try{wake&&wake.release();}catch(e){} wake=null;
     $('startBtn').textContent='เริ่มวัด'; $('startBtn').classList.remove('running');
     $('dot').className='dot'; $('acc').textContent='GPS ปิด';
@@ -1145,7 +1181,7 @@ body.rot #skinDots{display:none!important}
   async function api(body){ let key=ls.get('crv-key',''); if(!key){ key=(prompt('ใส่รหัสผ่าน (รหัสเดียวกับรหัสบันทึกทริป)')||'').trim(); if(!key) throw new Error('nokey'); ls.set('crv-key',key); }
     const j=await postLog(Object.assign({key},body)); if(j.error==='key'){ ls.del('crv-key'); throw new Error('key'); } if(!j.ok) throw new Error(j.error||'x'); return j; }
   const thDate=iso=>{ const d=new Date(iso); return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'})+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
-  async function openHist(){ $('hsCard').hidden=true; $('hsPanel').hidden=false; const ul=$('hsList'); ul.innerHTML='<li class="muted">กำลังโหลด…</li>';
+  async function openHist(){ $('hsCard').hidden=true; $('hsPanel').hidden=false; histMode(true); clearHist(); const ul=$('hsList'); ul.innerHTML='<li class="muted">กำลังโหลด…</li>';
     try{ const j=await api({action:'list',n:30}); ul.innerHTML='';
       if(!j.trips.length){ ul.innerHTML='<li class="muted">ยังไม่มีทริปที่บันทึก</li>'; return; }
       j.trips.forEach(t=>{ const li=document.createElement('li'); li.innerHTML='<b></b><small></small>';
@@ -1154,23 +1190,28 @@ body.rot #skinDots{display:none!important}
         li.onclick=()=>showTrip(t); ul.appendChild(li); });
     }catch(e){ ul.innerHTML=`<li class="muted">${e.message==='key'?'รหัสไม่ถูกต้อง — กดประวัติอีกครั้งเพื่อใส่ใหม่':e.message==='nokey'?'ต้องใส่รหัสก่อน':('โหลดไม่ได้ — ตรวจสอบอินเทอร์เน็ต หรือสคริปต์ยังไม่ได้อัปเดต <br><small>('+String(e.message||e).replace(/[<>&]/g,'')+')</small>')}</li>`; } }
   async function showTrip(t){ $('hsPanel').hidden=true; $('hsCard').hidden=false; $('hsTitle').textContent=`${thDate(t.start)} • ${t.distKm} กม.`;
-    $('hsInfo').textContent=`เวลาวิ่ง ${t.movingMin} นาที • เฉลี่ย ${t.avg} • สูงสุด ${t.max} km/h`;
-    const a=$('hsKml'); if(t.url){ a.href=t.url; a.classList.remove('off'); } else { a.removeAttribute('href'); a.classList.add('off'); }
-    if(!t.url) return clearHist();
+    const hm=iso=>{ const d=new Date(iso); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+    const cell=(k,v,u)=>`<div><small>${k}</small><b>${v}${u?`<i>${u}</i>`:''}</b></div>`;
+    $('hsInfo').innerHTML=cell('ออก',hm(t.start))+cell('ถึง',hm(t.end))+cell('ระยะทาง',t.distKm,'กม.')
+      +cell('เวลาวิ่ง',t.movingMin,'นาที')+cell('เฉลี่ย',t.avg,'km/h')+cell('สูงสุด',t.max,'km/h');
+    $('hsNote').textContent=t.kind?('ลักษณะการขับ: '+t.kind):'';
+    histMode(true); fitHistLater=null;
+    if(!t.url){ clearHist(); $('hsNote').textContent+=(t.kind?' • ':'')+'ทริปนี้ไม่มีเส้นทางบันทึกไว้'; return; }
     try{ const j=await api({action:'track',id:t.id}); const c=(j.track||[]).map(p=>[p[1],p[0]]); if(c.length<2) return;
       const data={type:'Feature',properties:{},geometry:{type:'LineString',coordinates:c}};
       if(!map.getSource('hist')){ map.addSource('hist',{type:'geojson',data}); map.addLayer({id:'hist-c',type:'line',source:'hist',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#7a2e00','line-width':10}});
         map.addLayer({id:'hist',type:'line',source:'hist',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#ff8a00','line-width':6}}); } else map.getSource('hist').setData(data);
-      follow=false; $('mpFollow').hidden=false; histMode(true);
+      follow=false; histMode(true); map.resize();
       const bb=c.reduce((b,p)=>[[Math.min(b[0][0],p[0]),Math.min(b[0][1],p[1])],[Math.max(b[1][0],p[0]),Math.max(b[1][1],p[1])]],[[180,90],[-180,-90]]);
-      (map.setPadding({top:0,bottom:0,left:0,right:0}),map).fitBounds(bb,{padding:{top:40,bottom:160,left:30,right:30},bearing:0,pitch:0,duration:600});
-    }catch(e){ $('hsInfo').textContent+=' — โหลดเส้นทางไม่ได้'; } }
-  function histMode(on){ $('mpHistExit').hidden=!on; $('mpHistBtn').hidden=on; }
+      setTimeout(()=>{ map.resize(); map.setPadding({top:0,bottom:0,left:0,right:0}); map.fitBounds(bb,{padding:{top:80,bottom:($('hsCard').offsetHeight||200)+30,left:40,right:40},bearing:0,pitch:0,duration:600}); },60);
+    }catch(e){ $('hsNote').textContent='โหลดเส้นทางไม่ได้'; } }
+  let fitHistLater=null;
+  function histMode(on){ $('mpHistExit').hidden=!on; $('mpHistBtn').hidden=on; const m=$('mp'); if(m.classList.contains('histOn')!==on){ m.classList.toggle('histOn',on); if(map) setTimeout(()=>map.resize(),30); } }
   function exitHist(){ $('hsCard').hidden=true; $('hsPanel').hidden=true; clearHist(); histMode(false); follow=true; navZoom=true; $('mpFollow').hidden=true; updMap(); }
-  $('mpHistExit').onclick=exitHist;
+  $('mpHistExit').onclick=exitHist; $('hsHome').onclick=exitHist;
   function clearHist(){ if(map&&map.getSource&&map.getSource('hist')) map.getSource('hist').setData({type:'FeatureCollection',features:[]}); }
   $('mpHistBtn').onclick=()=>{ if(map) openHist(); };
-  $('hsClose').onclick=()=>{ $('hsPanel').hidden=true; };
+  $('hsClose').onclick=exitHist;
   $('hsBack').onclick=()=>openHist();
   $('hsX').onclick=exitHist;
 
