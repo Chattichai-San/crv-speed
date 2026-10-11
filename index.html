@@ -85,6 +85,7 @@ body.instr:not(.rot) .sats .sh svg{stroke:var(--ink);filter:none}
 body.dr .dunit::before,body.dr .mpu::before,body.dr .dial .center .u::before{content:"≈ "}
 body.dr .seg .on{opacity:.62}
 .limit{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9rem;color:var(--muted)}
+.kflog{margin-left:auto;margin-right:4px;font:600 .75rem var(--body);padding:5px 8px;border-radius:8px;background:transparent;color:var(--muted);border:1px solid var(--line);letter-spacing:0}
 .limit select{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:600 1rem var(--body)}
 .msg{text-align:center;font-size:.9rem;color:var(--muted);min-height:1.3em}
 .msg.err{color:var(--warn)}
@@ -528,6 +529,9 @@ body.rot #skinDots{display:none!important}
       <option value="120">120</option>
     </select>
   </label>
+  <label class="limit" for="kfSel">ตัวกรองความเร็ว <button type="button" id="kfLog" class="kflog">คัดลอก log</button>
+    <select id="kfSel"><option value="1">Kalman</option><option value="0">แบบเดิม</option></select>
+  </label>
   <div class="msg" id="msg">กำลังเปิด GPS…</div>
 </main>
 
@@ -550,7 +554,7 @@ body.rot #skinDots{display:none!important}
     <div class="nvpanel" id="hsPanel" hidden>
       <div class="fvhead"><b>🕘 ประวัติการเดินทาง</b><button type="button" id="hsClose" aria-label="ปิด">✕</button></div>
       <ul id="hsList"></ul>
-      <p class="nvhint">เก็บไว้ใน Google Drive โฟลเดอร์ "CR-V เส้นทางการเดินทาง" (ไฟล์ KML เปิดใน Google Earth / My Maps ได้)<br>หน้าเว็บรุ่น 2026-10-11 19:00</p>
+      <p class="nvhint">เก็บไว้ใน Google Drive โฟลเดอร์ "CR-V เส้นทางการเดินทาง" (ไฟล์ KML เปิดใน Google Earth / My Maps ได้)<br>หน้าเว็บรุ่น 2026-10-11 19:30</p>
     </div>
     <div class="nvprev" id="hsCard" hidden><div class="pv1"><b id="hsTitle"></b><button type="button" id="hsX" aria-label="ปิด">✕</button></div>
       <div class="hsgrid" id="hsInfo"></div><div class="hsnote" id="hsNote"></div>
@@ -674,6 +678,54 @@ body.rot #skinDots{display:none!important}
     if(Date.now()>stickyUntil){ $('msg').textContent='ไม่มีสัญญาณดาวเทียม (อุโมงค์?) — แสดงความเร็วโดยประมาณ ≈'; $('msg').classList.remove('err'); }
     lastKmh=v; render(v); return true; }
   setInterval(()=>{ if(watchId!=null && good && Date.now()-good.wall>2500) coastTick(); },1000);
+
+  /* ---- Kalman filter: state [E, N, vE, vN] (เมตร, m/s) แบบความเร็วคงที่ + ความเร่งสุ่ม ----
+     วัดตำแหน่ง (σ = ค่า ±ม. จากมือถือ) และความเร็ว Doppler + ทิศ; ตัดจุดกระโดดด้วย Mahalanobis gating */
+  const KF={on:true, x:null, P:null, t:0, lat0:0, lon0:0, kx:1, rej:0, lp:null, lt:0, log:[]};
+  try{ KF.on=localStorage.getItem('crv-kf')!=='0'; KF.log=JSON.parse(localStorage.getItem('crv-kflog')||'[]'); }catch(e){ KF.log=[]; }
+  const KF_SA=2.5, KF_GATE=13.8, KF_SV=0.6;           // σ ความเร่ง (m/s²), เกณฑ์ χ² 2 มิติ 99.9%, σ ความเร็ว Doppler (m/s)
+  const mT=A=>A[0].map((_,j)=>A.map(r=>r[j]));
+  const mM=(A,B)=>A.map(r=>B[0].map((_,j)=>r.reduce((s,v,k)=>s+v*B[k][j],0)));
+  const mAdd=(A,B,k=1)=>A.map((r,i)=>r.map((v,j)=>v+k*B[i][j]));
+  function mInv(A){ const n=A.length, M=A.map((r,i)=>[...r,...A.map((_,j)=>i===j?1:0)]);
+    for(let i=0;i<n;i++){ let p=i; for(let k=i+1;k<n;k++) if(Math.abs(M[k][i])>Math.abs(M[p][i])) p=k; [M[i],M[p]]=[M[p],M[i]];
+      const d=M[i][i]||1e-12; for(let j=0;j<2*n;j++) M[i][j]/=d;
+      for(let k=0;k<n;k++) if(k!==i){ const f=M[k][i]; for(let j=0;j<2*n;j++) M[k][j]-=f*M[i][j]; } }
+    return M.map(r=>r.slice(n)); }
+  const kfENU=(lat,lon)=>[(lon-KF.lon0)*KF.kx,(lat-KF.lat0)*110540];
+  function kfInit(cur,v){ KF.lat0=cur.lat; KF.lon0=cur.lon; KF.kx=111320*Math.cos(cur.lat*Math.PI/180);
+    const sp=Math.max(cur.acc,3)**2; KF.x=[0,0,v?v[0]:0,v?v[1]:0];
+    KF.P=[[sp,0,0,0],[0,sp,0,0],[0,0,v?1:25,0],[0,0,0,v?1:25]]; KF.t=cur.t; KF.rej=0; KF.lp=[0,0]; KF.lt=cur.t; }
+  function kfPredict(t){ const dt=Math.max(0,(t-KF.t)/1000); KF.t=t; if(!dt) return;
+    const F=[[1,0,dt,0],[0,1,0,dt],[0,0,1,0],[0,0,0,1]], q=KF_SA*KF_SA, a=dt**4/4*q, b=dt**3/2*q, c=dt*dt*q;
+    const Q=[[a,0,b,0],[0,a,0,b],[b,0,c,0],[0,b,0,c]];
+    KF.x=mM(F,KF.x.map(v=>[v])).map(r=>r[0]); KF.P=mAdd(mM(mM(F,KF.P),mT(F)),Q); }
+  function kfUpdate(z,H,Rd){ const x=KF.x.map(v=>[v]), Ht=mT(H);
+    const S=mAdd(mM(mM(H,KF.P),Ht), Rd.map((v,i)=>Rd.map((_,j)=>i===j?v:0)));
+    const K=mM(mM(KF.P,Ht),mInv(S)), y=z.map((v,i)=>[v-mM([H[i]],x)[0][0]]);
+    KF.x=mAdd(x,mM(K,y)).map(r=>r[0]); KF.P=mM(mAdd(KF.P.map((r,i)=>r.map((_,j)=>i===j?1:0)),mM(K,H),-1),KF.P); }
+  // คืนค่า: ความเร็ว (km/h), ระยะที่เพิ่ม (m), เวลาที่เพิ่ม (ms)
+  function kfStep(cur,sp,hd){
+    let vm=null; if(sp!=null){ if(sp<0.5) vm=[0,0]; else if(hd!=null) vm=[sp*Math.sin(hd*Math.PI/180),sp*Math.cos(hd*Math.PI/180)]; }
+    if(!KF.x || cur.t-KF.t>120000 || cur.t<KF.t){ kfInit(cur,vm); return {kmh:sp!=null&&sp>=0.5?sp*3.6:0,dd:0,dt:0,gated:0}; }
+    kfPredict(cur.t);
+    const [e,n]=kfENU(cur.lat,cur.lon), sp2=Math.max(cur.acc,2.5)**2;
+    const S=[[KF.P[0][0]+sp2,KF.P[0][1]],[KF.P[1][0],KF.P[1][1]+sp2]], Si=mInv(S), y=[e-KF.x[0],n-KF.x[1]];
+    const d2=y[0]*(Si[0][0]*y[0]+Si[0][1]*y[1])+y[1]*(Si[1][0]*y[0]+Si[1][1]*y[1]);
+    let usePos=true, gated=0; if(d2>KF_GATE){ if(++KF.rej>=4){ kfInit(cur,vm); return {kmh:sp!=null&&sp>=0.5?sp*3.6:0,dd:0,dt:0,gated:2}; } usePos=false; gated=1; } else KF.rej=0;
+    const z=[],H=[],R=[];
+    if(usePos){ z.push(e,n); H.push([1,0,0,0],[0,1,0,0]); R.push(sp2,sp2); }
+    if(vm){ const sv=(sp<0.5?0.3:KF_SV)**2; z.push(vm[0],vm[1]); H.push([0,0,1,0],[0,0,0,1]); R.push(sv,sv); }
+    if(z.length) kfUpdate(z,H,R);
+    let kmh=Math.hypot(KF.x[2],KF.x[3])*3.6; if(kmh<4) kmh=0;
+    let dd=0, dt=0; const p=[KF.x[0],KF.x[1]];
+    if(KF.lp && usePos){ const d=Math.hypot(p[0]-KF.lp[0],p[1]-KF.lp[1]), g=(cur.t-KF.lt)/1000;
+      if(kmh>0 && g>0 && d/g<70){ dd=d; dt=cur.t-KF.lt; } }
+    if(usePos){ KF.lp=p; KF.lt=cur.t; }
+    return {kmh,dd,dt,gated};
+  }
+  function kfLogPush(t,raw,kf,acc,g){ KF.log.push([Math.round(t/1000),Math.round(raw*10)/10,Math.round(kf*10)/10,Math.round(acc),g]); if(KF.log.length>7200) KF.log.splice(0,KF.log.length-7200); }
+  setInterval(()=>{ try{ localStorage.setItem('crv-kflog',JSON.stringify(KF.log)); }catch(e){} },30000);
   // ---- บันทึกทริป → Google Sheet + Calendar (ผ่านสคริปต์ CR-V Trip Log) ----
   const LOG_URL='https://script.google.com/macros/s/AKfycbxMs2Os-kUZAo7whJYZVRBVfbcwmwzIbVEyorfTfVhuhSz_bX3fSQWsuciE3H5LMa-yDA/exec';
   let tripStart=null, lastMove=null, tripSaved=false;
@@ -725,7 +777,7 @@ body.rot #skinDots{display:none!important}
     if(bad){ ls.del('crv-key'); note('รหัสบันทึกทริปไม่ถูกต้อง — แตะตรงนี้เพื่อใส่ใหม่',true); }
     else note(left.length ? `ยังส่งไม่ได้ (ไม่มีเน็ต?) — เก็บทริปไว้ ${left.length} รายการ จะส่งให้อีกครั้งอัตโนมัติ` : 'บันทึกทริปลงปฏิทินและชีตแล้ว ✓');
   }
-  function resetTrip(){good=null;coasting=false;document.body.classList.remove('dr');dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur'); trackPts=[]; if(trk) trk.setLatLngs([]);}
+  function resetTrip(){good=null;KF.x=null;coasting=false;document.body.classList.remove('dr');dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur'); trackPts=[]; if(trk) trk.setLatLngs([]);}
   const isBig=()=>document.body.classList.contains('big');
   const landMQ=matchMedia('(orientation:landscape) and (max-height:600px)'), isLand=()=>landMQ.matches;
   let rot=0;
@@ -766,7 +818,7 @@ body.rot #skinDots{display:none!important}
   }
 
   function render(kmh){
-    shown = kmh===0 ? 0 : shown*0.4 + kmh*0.6;
+    shown = kmh===0 ? 0 : (KF.on ? kmh : shown*0.4 + kmh*0.6);
     const spd=Math.round(shown), v=Math.max(0,Math.min(MAXV,shown));
     const lim=+$('limitSel').value, over=lim>0 && shown>lim;
     if(over && !beeped){beep();beeped=true;} if(!over) beeped=false;
@@ -802,6 +854,21 @@ body.rot #skinDots{display:none!important}
       if(good && coastTick()) return;                                 // เพิ่งวิ่งอยู่ → ประคองความเร็วต่อ
       if(free) $('msg').textContent='สัญญาณ GPS ยังไม่แม่น (ในอาคาร?) — ความเร็วแสดง 0 จนกว่าจะจับดาวเทียมได้';
       last=null; buf=[]; lastKmh=0; render(0); return;
+    }
+    if(KF.on){                                                        // ---- โหมด Kalman ----
+      const sp=(c.speed!=null&&!isNaN(c.speed))?c.speed:null, hd=(c.heading!=null&&!isNaN(c.heading))?c.heading:null;
+      const k=kfStep(cur,sp,hd); kmh=k.kmh; if(kmh>220) kmh=lastKmh;
+      kfLogPush(now,sp!=null?sp*3.6:-1,kmh,acc,k.gated);
+      if(k.dd>0){ dist+=k.dd; movingMs+=k.dt; }
+      if(coasting){ coasting=false; document.body.classList.remove('dr'); if(free) $('msg').textContent=''; }
+      if(kmh>0){ maxV=Math.max(maxV,kmh); if(!tripStart) tripStart=now; lastMove=now; }
+      if(tripStart && dist>0) ls.set('crv-cur',buildTrip());
+      if(kmh>=5 && KF.x) head=(Math.atan2(KF.x[2],KF.x[3])*180/Math.PI+360)%360;
+      fix=cur;
+      if(kmh>0){ const lp=trackPts[trackPts.length-1]; if(!lp || hav(lp,cur)>5) trackPts.push({lat:cur.lat,lon:cur.lon,t:now,acc:acc,s:null}); if(trackPts.length>8000) trackPts.shift(); }
+      if(map){ updMap(); if(kmh>0) snapRoad(); if(nav) updNav(); }
+      lastKmh=kmh; last=cur; buf=[]; good={lat:cur.lat,lon:cur.lon,t:now,wall:Date.now(),kmh:kmh};
+      render(kmh); return;
     }
     if(good && (coasting || now-good.t>3000)){                       // สัญญาณกลับมาหลังหายไป
       const gdt=(now-good.t)/1000, gd=hav(good,cur), vb=gd/gdt*3.6;
@@ -855,7 +922,7 @@ body.rot #skinDots{display:none!important}
   }
   function stop(){
     if(watchId!=null) navigator.geolocation.clearWatch(watchId);
-    watchId=null; clearInterval(timer); last=null; lastKmh=0; buf=[]; good=null; coasting=false; document.body.classList.remove('dr');
+    watchId=null; clearInterval(timer); last=null; lastKmh=0; buf=[]; good=null; coasting=false; KF.x=null; document.body.classList.remove('dr');
     try{wake&&wake.release();}catch(e){} wake=null;
     $('startBtn').textContent='เริ่มวัด'; $('startBtn').classList.remove('running');
     $('dot').className='dot'; $('acc').textContent='GPS ปิด';
@@ -872,6 +939,10 @@ body.rot #skinDots{display:none!important}
     }});
   try{const s=localStorage.getItem('crv-limit'); if(s) $('limitSel').value=s;}catch(e){}
   $('limitSel').onchange=e=>{try{localStorage.setItem('crv-limit',e.target.value);}catch(_){}};
+  $('kfSel').value=KF.on?'1':'0';
+  $('kfSel').onchange=e=>{ KF.on=e.target.value==='1'; KF.x=null; buf=[]; try{localStorage.setItem('crv-kf',KF.on?'1':'0');}catch(_){} note(KF.on?'ใช้ตัวกรอง Kalman':'ใช้ตัวกรองแบบเดิม'); };
+  $('kfLog').onclick=async ()=>{ const rows=['time_s,raw_kmh,kf_kmh,acc_m,gated'].concat(KF.log.map(r=>r.join(','))).join('\n');
+    try{ await navigator.clipboard.writeText(rows); note('คัดลอก log '+KF.log.length+' แถวแล้ว — วางใน LINE/อีเมล/Sheets ได้'); }catch(e){ note('คัดลอกไม่ได้ในเครื่องนี้',true); } };
 
   // สลับหน้าปัดเข็ม / ตัวเลขดิจิทัล — แอปจำค่าไว้
   function setBig(on){document.body.classList.toggle('big',on);$('dig').hidden=!on;$('dial').hidden=on;
@@ -1304,7 +1375,7 @@ body.rot #skinDots{display:none!important}
   // เปิด GPS อัตโนมัติเมื่อเปิดแอป
   start();
   // ตรวจหน้าเว็บรุ่นใหม่: ตอนกลับมาเปิดแอป และทุก 10 นาที — ถ้ามีรุ่นใหม่และไม่ได้กำลังวัดอยู่ จะโหลดใหม่เอง
-  const PAGE_VER='2026-10-11 19:00';
+  const PAGE_VER='2026-10-11 19:30';
   window.crvCheckUpdate=async function(){ try{
     const run=(document.getElementById('startBtn')||{classList:{contains(){return false}}}).classList.contains('running') && (lastKmh>0 || dist>0);   // กำลังมีทริปอยู่ → ไม่รีโหลด
     const t=await (await fetch('index.html?chk='+Date.now(),{cache:'no-store'})).text();
