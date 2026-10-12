@@ -568,7 +568,7 @@ body.rot #skinDots{display:none!important}
     <div class="nvpanel" id="hsPanel" hidden>
       <div class="fvhead"><b>🕘 ประวัติการเดินทาง</b><button type="button" id="hsClose" aria-label="ปิด">✕</button></div>
       <ul id="hsList"></ul>
-      <p class="nvhint">เก็บไว้ใน Google Drive โฟลเดอร์ "CR-V เส้นทางการเดินทาง" (ไฟล์ KML เปิดใน Google Earth / My Maps ได้)<br>หน้าเว็บรุ่น 2026-10-11 19:50</p>
+      <p class="nvhint">เก็บไว้ใน Google Drive โฟลเดอร์ "CR-V เส้นทางการเดินทาง" (ไฟล์ KML เปิดใน Google Earth / My Maps ได้)<br>หน้าเว็บรุ่น 2026-10-12 08:00</p>
     </div>
     <div class="nvprev" id="hsCard" hidden><div class="pv1"><b id="hsTitle"></b><button type="button" id="hsX" aria-label="ปิด">✕</button></div>
       <div class="hsgrid" id="hsInfo"></div><div class="hsnote" id="hsNote"></div>
@@ -690,6 +690,7 @@ body.rot #skinDots{display:none!important}
     const v=coastKmh(); if(v<=0){ if(coasting){ coasting=false; document.body.classList.remove('dr'); } return false; }
     if(!coasting){ coasting=true; document.body.classList.add('dr'); }
     if(Date.now()>stickyUntil){ $('msg').textContent='ไม่มีสัญญาณดาวเทียม (อุโมงค์?) — แสดงความเร็วโดยประมาณ ≈'; $('msg').classList.remove('err'); }
+    if(watchId!=null && tripStart) tripLog.push([Math.round(Date.now()/1000),'','','','',Math.round(v*10)/10,3]);
     lastKmh=v; render(v); return true; }
   setInterval(()=>{ if(watchId!=null && good && Date.now()-good.wall>2500) coastTick(); },1000);
 
@@ -756,6 +757,9 @@ body.rot #skinDots{display:none!important}
       distKm:Math.round(dist/10)/100, movingMin:r1(movingMs/60000), totalMin:r1(((lastMove||Date.now())-tripStart)/60000),
       avg:movingMs>5000?Math.round((dist/1000)/(movingMs/3600000)):0, max:Math.round(maxV), track:packTrack()};
   }
+  // บันทึกค่าดิบทุกจุด (≈1 ครั้ง/วินาที) ส่งไปเก็บเป็นไฟล์ CSV ใน Google Drive พร้อมทริป
+  let tripLog=[];
+  function logFix(t,lat,lon,acc,raw,kf,g){ tripLog.push([Math.round(t/1000),+lat.toFixed(6),+lon.toFixed(6),Math.round(acc*10)/10,raw<0?'':Math.round(raw*10)/10,Math.round(kf*10)/10,g]); if(tripLog.length>30000) tripLog.shift(); }
   function queueTrip(t){ if(!t||!(t.distKm>=0.5)) return false; const q=ls.get('crv-queue',[]); if(!q.some(x=>x.id===t.id)) q.push(t); ls.set('crv-queue',q); return true; }
   // ต้องมีรหัสบันทึกทริป (ตั้งไว้ใน Apps Script) — ใส่ครั้งเดียวต่อเครื่อง คนอื่นที่มีลิงก์จึงบันทึกไม่ได้
   let stickyUntil=0;
@@ -791,7 +795,7 @@ body.rot #skinDots{display:none!important}
     if(bad){ ls.del('crv-key'); note('รหัสบันทึกทริปไม่ถูกต้อง — แตะตรงนี้เพื่อใส่ใหม่',true); }
     else note(left.length ? `ยังส่งไม่ได้ (ไม่มีเน็ต?) — เก็บทริปไว้ ${left.length} รายการ จะส่งให้อีกครั้งอัตโนมัติ` : 'บันทึกทริปลงปฏิทินและชีตแล้ว ✓');
   }
-  function resetTrip(){good=null;KF.x=null;coasting=false;document.body.classList.remove('dr');dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur'); trackPts=[]; if(trk) trk.setLatLngs([]);}
+  function resetTrip(){good=null;KF.x=null;tripLog=[];coasting=false;document.body.classList.remove('dr');dist=0;maxV=0;movingMs=0;shown=0;last=null;lastKmh=0;buf=[];tripStart=null;lastMove=null;tripSaved=false;ls.del('crv-cur'); trackPts=[]; if(trk) trk.setLatLngs([]);}
   const isBig=()=>document.body.classList.contains('big');
   const landMQ=matchMedia('(orientation:landscape) and (max-height:600px)'), isLand=()=>landMQ.matches;
   let rot=0;
@@ -855,8 +859,10 @@ body.rot #skinDots{display:none!important}
     o.start();o.stop(ac.currentTime+.5);}catch(e){}
     if(navigator.vibrate) navigator.vibrate(300);}
 
+  let lastFixKey='';
   function onPos(p){
     const c=p.coords, now=p.timestamp, acc=c.accuracy;
+    const fk=now+'|'+c.latitude+'|'+c.longitude; if(fk===lastFixKey) return; lastFixKey=fk;   // ตัดจุดซ้ำ (WebView บางรุ่นส่งตำแหน่งเดิมมา 2 ครั้ง)
     $('dot').className='dot '+(acc<=10?'good':acc<=30?'fair':'bad');
     $('acc').textContent=`±${Math.round(acc)} ม.`;
     const free=Date.now()>stickyUntil;
@@ -872,7 +878,7 @@ body.rot #skinDots{display:none!important}
     if(KF.on){                                                        // ---- โหมด Kalman ----
       const sp=(c.speed!=null&&!isNaN(c.speed))?c.speed:null, hd=(c.heading!=null&&!isNaN(c.heading))?c.heading:null;
       const k=kfStep(cur,sp,hd); kmh=k.kmh; if(kmh>220) kmh=lastKmh;
-      kfLogPush(now,sp!=null?sp*3.6:-1,kmh,acc,k.gated);
+      kfLogPush(now,sp!=null?sp*3.6:-1,kmh,acc,k.gated); logFix(now,cur.lat,cur.lon,acc,sp!=null?sp*3.6:-1,kmh,k.gated);
       if(k.dd>0){ dist+=k.dd; movingMs+=k.dt; }
       if(coasting){ coasting=false; document.body.classList.remove('dr'); if(free) $('msg').textContent=''; }
       if(kmh>0){ maxV=Math.max(maxV,kmh); if(!tripStart) tripStart=now; lastMove=now; }
@@ -914,6 +920,7 @@ body.rot #skinDots{display:none!important}
     fix=cur;
     if(kmh>0){ const lp=trackPts[trackPts.length-1]; if(!lp || hav(lp,cur)>5) trackPts.push({lat:cur.lat,lon:cur.lon,t:now,acc:acc,s:null}); if(trackPts.length>8000) trackPts.shift(); }
     if(map){ updMap(); if(kmh>0) snapRoad(); if(nav) updNav(); }
+    logFix(now,cur.lat,cur.lon,acc,(c.speed!=null&&!isNaN(c.speed))?c.speed*3.6:-1,kmh,0);
     lastKmh=kmh; last=cur; good={lat:cur.lat,lon:cur.lon,t:now,wall:Date.now(),kmh:kmh};
     render(kmh);
   }
@@ -941,7 +948,7 @@ body.rot #skinDots{display:none!important}
     $('startBtn').textContent='เริ่มวัด'; $('startBtn').classList.remove('running');
     $('dot').className='dot'; $('acc').textContent='GPS ปิด';
     render(0);
-    if(tripStart && queueTrip(buildTrip())){ ls.del('crv-cur'); tripSaved=true; $('msg').textContent='กำลังบันทึกทริป…'; flush(); }
+    if(tripStart && queueTrip(Object.assign(buildTrip(),{log:tripLog.slice(), filter:KF.on?'kalman':'classic'}))){ ls.del('crv-cur'); tripSaved=true; $('msg').textContent='กำลังบันทึกทริป…'; flush(); }
     else if(tripStart){ $('msg').textContent='ทริปสั้นกว่า 0.5 กม. — ไม่บันทึก'; }
   }
   $('startBtn').onclick=()=>watchId==null?start():stop();
@@ -1389,7 +1396,7 @@ body.rot #skinDots{display:none!important}
   // เปิด GPS อัตโนมัติเมื่อเปิดแอป
   start();
   // ตรวจหน้าเว็บรุ่นใหม่: ตอนกลับมาเปิดแอป และทุก 10 นาที — ถ้ามีรุ่นใหม่และไม่ได้กำลังวัดอยู่ จะโหลดใหม่เอง
-  const PAGE_VER='2026-10-11 19:50';
+  const PAGE_VER='2026-10-12 08:00';
   window.crvCheckUpdate=async function(){ try{
     const run=(document.getElementById('startBtn')||{classList:{contains(){return false}}}).classList.contains('running') && (lastKmh>0 || dist>0);   // กำลังมีทริปอยู่ → ไม่รีโหลด
     const t=await (await fetch('index.html?chk='+Date.now(),{cache:'no-store'})).text();
