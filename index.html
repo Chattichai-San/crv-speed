@@ -568,7 +568,7 @@ body.rot #skinDots{display:none!important}
     <div class="nvpanel" id="hsPanel" hidden>
       <div class="fvhead"><b>🕘 ประวัติการเดินทาง</b><button type="button" id="hsClose" aria-label="ปิด">✕</button></div>
       <ul id="hsList"></ul>
-      <p class="nvhint">เก็บไว้ใน Google Drive โฟลเดอร์ "CR-V เส้นทางการเดินทาง" (ไฟล์ KML เปิดใน Google Earth / My Maps ได้)<br>หน้าเว็บรุ่น 2026-10-12 08:00</p>
+      <p class="nvhint">เก็บไว้ใน Google Drive โฟลเดอร์ "CR-V เส้นทางการเดินทาง" (ไฟล์ KML เปิดใน Google Earth / My Maps ได้)<br>หน้าเว็บรุ่น 2026-10-12 08:10</p>
     </div>
     <div class="nvprev" id="hsCard" hidden><div class="pv1"><b id="hsTitle"></b><button type="button" id="hsX" aria-label="ปิด">✕</button></div>
       <div class="hsgrid" id="hsInfo"></div><div class="hsnote" id="hsNote"></div>
@@ -962,8 +962,26 @@ body.rot #skinDots{display:none!important}
   $('limitSel').onchange=e=>{try{localStorage.setItem('crv-limit',e.target.value);}catch(_){}};
   $('kfSel').value=KF.on?'1':'0';
   $('kfSel').onchange=e=>{ KF.on=e.target.value==='1'; KF.x=null; buf=[]; try{localStorage.setItem('crv-kf',KF.on?'1':'0');}catch(_){} note(KF.on?'ใช้ตัวกรอง Kalman':'ใช้ตัวกรองแบบเดิม'); };
-  $('kfLog').onclick=async ()=>{ const rows=['time_s,raw_kmh,kf_kmh,acc_m,gated'].concat(KF.log.map(r=>r.join(','))).join('\n');
-    try{ await navigator.clipboard.writeText(rows); note('คัดลอก log '+KF.log.length+' แถวแล้ว — วางใน LINE/อีเมล/Sheets ได้'); }catch(e){ note('คัดลอกไม่ได้ในเครื่องนี้',true); } };
+  // คัดลอก log: เฉพาะ "ช่วงขับล่าสุด" (หลังจอดนิ่ง/ไม่มีข้อมูล > 10 นาที) แบ่งเป็นส่วนละ ≤ 18,000 ตัวอักษร (แชทรับได้ราว 20,000)
+  let logParts=null, logIdx=0;
+  function buildLogParts(){
+    const L=KF.log; let st=0; for(let i=L.length-1;i>0;i--){ if(L[i][0]-L[i-1][0]>600){ st=i; break; } }
+    const rows=L.slice(st); if(!rows.length) return [];
+    const t0=rows[0][0], head='t0='+t0+' (unix s), cols: dt_s,raw_kmh,kf_kmh,acc_m,gated';
+    const lines=rows.map(r=>[r[0]-t0,r[1],r[2],r[3],r[4]].join(',')), parts=[]; let cur=[];
+    let size=0; for(const l of lines){ if(size+l.length+1>17500){ parts.push(cur); cur=[]; size=0; } cur.push(l); size+=l.length+1; }
+    if(cur.length) parts.push(cur);
+    return parts.map((p,k)=>head+' | part '+(k+1)+'/'+parts.length+'\n'+p.join('\n'));
+  }
+  $('kfLog').onclick=async ()=>{
+    if(!logParts || logIdx>=logParts.length){ logParts=buildLogParts(); logIdx=0; }
+    if(!logParts.length){ note('ยังไม่มี log'); return; }
+    try{ await navigator.clipboard.writeText(logParts[logIdx]); logIdx++;
+      const n=logParts.length;
+      note(n===1?'คัดลอก log ช่วงขับล่าสุดแล้ว — วางส่งได้เลย':'คัดลอกส่วนที่ '+logIdx+'/'+n+' แล้ว — วางส่ง แล้วกดปุ่มอีกครั้งเพื่อคัดลอกส่วนถัดไป');
+      $('kfLog').textContent = logIdx<n ? ('คัดลอกส่วน '+(logIdx+1)+'/'+n) : 'คัดลอก log';
+      if(logIdx>=n) logParts=null;
+    }catch(e){ note('คัดลอกไม่ได้ในเครื่องนี้',true); } };
 
   // สลับหน้าปัดเข็ม / ตัวเลขดิจิทัล — แอปจำค่าไว้
   function setBig(on){document.body.classList.toggle('big',on);$('dig').hidden=!on;$('dial').hidden=on;
@@ -1396,7 +1414,7 @@ body.rot #skinDots{display:none!important}
   // เปิด GPS อัตโนมัติเมื่อเปิดแอป
   start();
   // ตรวจหน้าเว็บรุ่นใหม่: ตอนกลับมาเปิดแอป และทุก 10 นาที — ถ้ามีรุ่นใหม่และไม่ได้กำลังวัดอยู่ จะโหลดใหม่เอง
-  const PAGE_VER='2026-10-12 08:00';
+  const PAGE_VER='2026-10-12 08:10';
   window.crvCheckUpdate=async function(){ try{
     const run=(document.getElementById('startBtn')||{classList:{contains(){return false}}}).classList.contains('running') && (lastKmh>0 || dist>0);   // กำลังมีทริปอยู่ → ไม่รีโหลด
     const t=await (await fetch('index.html?chk='+Date.now(),{cache:'no-store'})).text();
